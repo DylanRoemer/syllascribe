@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+*.so
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment files
+.env
+services/api/.env
+services/worker/.env
+apps/web/.env.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data / uploads (keep .gitkeep)
+data/uploads/*
+!data/uploads/.gitkeep
+
+# Node
+node_modules/
+apps/web/.next/
+apps/web/out/
+
+# Alembic
+services/api/alembic/versions/__pycache__/
+
+# Test / coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
