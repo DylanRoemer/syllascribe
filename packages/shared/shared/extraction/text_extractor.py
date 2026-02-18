@@ -50,8 +50,10 @@ def _extract_pdf(file_path: str) -> list[PageText]:
                 for table in tables:
                     for row in table:
                         if row:
-                            cells = [str(c).strip() if c else "" for c in row]
-                            table_text_parts.append(" | ".join(cells))
+                            # Clean cells: strip whitespace, drop None/empty
+                            cells = [str(c).strip() for c in row if c and str(c).strip()]
+                            if cells:
+                                table_text_parts.append(" | ".join(cells))
 
             if text.strip():
                 pages.append(PageText(page=i + 1, text=text, source_kind="pdf_text"))

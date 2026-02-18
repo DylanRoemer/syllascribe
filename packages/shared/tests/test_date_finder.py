@@ -11,8 +11,10 @@ from shared.extraction.date_finder import (
     TERM_HINT_RE,
     find_date_candidates,
     _safe_parse,
+    _safe_construct_date,
     _extract_context,
     _deduplicate,
+    _infer_year_from_filename,
 )
 from shared.schemas import PageText, Candidate
 
@@ -50,7 +52,6 @@ class TestMonthNameRegex:
             assert MONTH_NAME_DATE_RE.search(text), f"Failed for {month}"
 
     def test_no_false_positive_on_word(self):
-        # "Mayor" should not match "May"
         m = MONTH_NAME_DATE_RE.search("The mayor decided")
         assert m is None
 
@@ -118,8 +119,43 @@ class TestSafeParse:
 
     def test_invalid_returns_none(self):
         result = _safe_parse("not a date at all")
-        # May or may not return None depending on dateparser behavior
-        # The key is it shouldn't crash
+        # Should not crash
+
+
+class TestSafeConstructDate:
+    def test_valid_date(self):
+        assert _safe_construct_date(2026, 2, 13) == date(2026, 2, 13)
+
+    def test_invalid_month(self):
+        assert _safe_construct_date(2026, 13, 1) is None
+
+    def test_invalid_day(self):
+        assert _safe_construct_date(2026, 2, 30) is None
+
+    def test_two_digit_year_not_auto_expanded(self):
+        # Direct construction: year 26 is valid but not 2026
+        result = _safe_construct_date(26, 2, 13)
+        assert result is not None
+        assert result.year == 26
+
+
+# ── Year inference from filename ─────────────────────────────────────────────
+
+class TestInferYearFromFilename:
+    def test_term_with_year(self):
+        assert _infer_year_from_filename("Hogan - Macro Syllabus Winter 2026-02-03.pdf") == 2026
+
+    def test_underscore_term(self):
+        assert _infer_year_from_filename("CS101_Spring_2026.pdf") == 2026
+
+    def test_plain_year_in_filename(self):
+        assert _infer_year_from_filename("syllabus_2026.pdf") == 2026
+
+    def test_no_year_returns_none(self):
+        assert _infer_year_from_filename("random_file.pdf") is None
+
+    def test_hyphenated_term(self):
+        assert _infer_year_from_filename("Fall-2025-schedule.pdf") == 2025
 
 
 # ── Context extraction ───────────────────────────────────────────────────────
@@ -156,13 +192,25 @@ class TestDeduplicate:
         result = _deduplicate([c1, c2])
         assert len(result) == 2
 
-    def test_keeps_same_date_different_context(self):
+    def test_keeps_same_date_different_pages(self):
         c1 = Candidate(date=date(2026, 2, 13), raw_match="Feb 13",
                        context="Homework 1 due Feb 13", page=1)
         c2 = Candidate(date=date(2026, 2, 13), raw_match="Feb 13",
                        context="Quiz on Feb 13 in class", page=2)
         result = _deduplicate([c1, c2])
         assert len(result) == 2
+
+    def test_prefers_table_over_text_same_date_page(self):
+        """When both pdf_text and table find the same date on the same page, keep table."""
+        c_text = Candidate(date=date(2026, 2, 13), raw_match="Feb 13",
+                           context="Feb 13 Homework 2 Due: Control Flow", page=1,
+                           source_kind="pdf_text")
+        c_table = Candidate(date=date(2026, 2, 13), raw_match="Feb 13",
+                            context="Feb 13 | Homework 2 Due: Control Flow", page=1,
+                            source_kind="table")
+        result = _deduplicate([c_text, c_table])
+        assert len(result) == 1
+        assert result[0].source_kind == "table"
 
 
 # ── Integration: find_date_candidates ────────────────────────────────────────
@@ -201,7 +249,30 @@ class TestFindDateCandidates:
     def test_ambiguous_flag_on_numeric_without_year(self):
         pages = [PageText(page=1, text="Submit by 3/4")]
         candidates = find_date_candidates(pages)
-        # Without a term hint, should be ambiguous
         if candidates:
-            # 3/4 is ambiguous because both 3 and 4 are <= 12
             assert any(c.is_ambiguous for c in candidates)
+
+    def test_short_numeric_dates_with_filename_year(self):
+        """Short numeric dates like 1/6 should resolve using filename year."""
+        pages = [PageText(page=1, text="1 1/6 Syllabus\n2 1/8 Micro recap\n14 2/19 Mid-term exam 2")]
+        candidates = find_date_candidates(pages, filename="Macro Syllabus Winter 2026.pdf")
+        dates = {c.date for c in candidates}
+        assert date(2026, 1, 6) in dates
+        assert date(2026, 1, 8) in dates
+        assert date(2026, 2, 19) in dates
+
+    def test_all_months_covered_not_just_future(self):
+        """Dates in Jan should not be pushed to next year when year is inferred."""
+        pages = [PageText(page=1, text="Schedule:\n1/6 Class starts\n3/12 Last class")]
+        candidates = find_date_candidates(pages, filename="Spring_2026_syllabus.pdf")
+        dates = {c.date for c in candidates}
+        assert date(2026, 1, 6) in dates
+        assert date(2026, 3, 12) in dates
+        # Both should be 2026, not one in 2027
+        assert all(c.date.year == 2026 for c in candidates)
+
+    def test_two_digit_year_expanded(self):
+        """02/13/26 should become 2026-02-13."""
+        pages = [PageText(page=1, text="Spring 2026\nDue 02/13/26")]
+        candidates = find_date_candidates(pages)
+        assert any(c.date == date(2026, 2, 13) for c in candidates)

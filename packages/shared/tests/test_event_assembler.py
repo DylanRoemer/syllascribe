@@ -61,6 +61,72 @@ class TestExtractTitle:
         title = _extract_title(context, "Mar 4", "other")
         assert len(title) <= 83  # 80 + "..."
 
+    # ── Table-formatted titles ───────────────────────────────────────────
+
+    def test_table_row_extracts_topic_column(self):
+        """Pipe-delimited table row should extract only the topic, not class# or HW#."""
+        ctx = "13 | 2/17 | Ch. 20 Political economy | 11"
+        title = _extract_title(ctx, "2/17", "other")
+        assert title == "Ch. 20 Political economy"
+
+    def test_table_row_with_week_prefix(self):
+        ctx = "Week 1 | Jan 12 | Introduction to CS; Course overview"
+        title = _extract_title(ctx, "Jan 12", "other")
+        assert title == "Introduction to CS; Course overview"
+
+    def test_table_row_leading_pipe(self):
+        ctx = "| Feb 13 | Homework 2 Due: Control Flow"
+        title = _extract_title(ctx, "Feb 13", "assignment")
+        assert title == "Homework 2 Due: Control Flow"
+
+    def test_table_row_midterm(self):
+        ctx = "8 | 1/29 | Mid-term exam 1"
+        title = _extract_title(ctx, "1/29", "exam")
+        assert title == "Mid-term exam"
+
+    def test_table_row_complex(self):
+        ctx = "Week 14 | Apr 27 | Final Project Presentations; Final Project Due"
+        title = _extract_title(ctx, "Apr 27", "assignment")
+        assert "Final Project" in title
+
+    def test_table_row_empty_cells_cleaned(self):
+        """Empty pipe cells should not pollute the title."""
+        ctx = "13 | | | | | | Ch. 20 Political economy | | | | | | | | | 11"
+        title = _extract_title(ctx, "2/17", "other")
+        # The date match isn't in this line, but the title should still be clean
+        assert "|" not in title
+        assert "Ch. 20 Political economy" in title
+
+    # ── Plain text titles ────────────────────────────────────────────────
+
+    def test_plain_text_midterm(self):
+        ctx = "* Midterm Exam: March 4, 2026"
+        title = _extract_title(ctx, "March 4, 2026", "exam")
+        assert title == "Midterm Exam"
+
+    def test_plain_text_strips_week(self):
+        ctx = "Week 1 Jan 12 Introduction to CS; Course overview"
+        title = _extract_title(ctx, "Jan 12", "other")
+        assert title == "Introduction to CS; Course overview"
+
+    def test_plain_text_homework(self):
+        ctx = "Feb 13 Homework 2 Due: Control Flow"
+        title = _extract_title(ctx, "Feb 13", "assignment")
+        assert title == "Homework 2 Due: Control Flow"
+
+    def test_plain_text_strips_trailing_date(self):
+        """'Spring Break (No Class): March 16 - March 20, 2026' after removing 'March 16'."""
+        ctx = "* Spring Break (No Class): March 16 - March 20, 2026"
+        title = _extract_title(ctx, "March 16", "holiday")
+        assert "Spring Break" in title
+        # Should not have trailing "- March 20, 2026"
+        assert "March 20" not in title
+
+    def test_strips_leading_bare_number(self):
+        ctx = "14 2/19 Mid-term exam 2"
+        title = _extract_title(ctx, "2/19", "exam")
+        assert title == "Mid-term exam"
+
 
 # ── Confidence scoring ───────────────────────────────────────────────────────
 

@@ -84,13 +84,13 @@ def _classify_category(context: str) -> str:
 
 
 def _extract_title(context: str, raw_match: str, category: str) -> str:
-    """Extract a concise title from the context around the date match.
+    """Extract a concise, human-readable title from the context around the date match.
 
-    Strategy:
-    1. Find the line containing the date match.
-    2. Remove the date itself.
-    3. Clean up to ~60 chars.
-    4. Fallback to category-based title.
+    Handles:
+    - Table-formatted text with pipe delimiters (e.g. "13 | 2/17 | Ch. 20 Political economy | 11")
+    - Plain text lines (e.g. "Midterm Exam: March 4, 2026")
+    - Leading class/lecture numbers and trailing HW/page numbers
+    - Bullet-point prefixes like "* "
     """
     # Split context into lines and find the one with the date
     lines = context.split("\n")
@@ -102,17 +102,25 @@ def _extract_title(context: str, raw_match: str, category: str) -> str:
     if not target_line:
         target_line = lines[0] if lines else ""
 
-    # Remove the date match from the line
-    title = target_line.replace(raw_match, "").strip()
+    # ── Handle pipe-delimited table rows ─────────────────────────────────
+    if "|" in target_line:
+        title = _extract_title_from_table_row(target_line, raw_match)
+    else:
+        title = _extract_title_from_plain_line(target_line, raw_match)
 
-    # Clean up common delimiters and whitespace
+    # ── Final cleanup ────────────────────────────────────────────────────
+    # Strip bullet prefixes
+    title = re.sub(r"^[\s*•·\-–—]+\s*", "", title)
+    # Remove leading/trailing bare numbers (class numbers, HW numbers)
+    title = re.sub(r"^\d+\s+", "", title)
+    title = re.sub(r"\s+\d+$", "", title)
+    # Clean up leftover delimiters and whitespace
     title = re.sub(r"^[\s\-–—:,.|]+", "", title)
     title = re.sub(r"[\s\-–—:,.|]+$", "", title)
     title = re.sub(r"\s+", " ", title).strip()
 
     # Truncate to reasonable length
     if len(title) > 80:
-        # Try to cut at a word boundary
         title = title[:77].rsplit(" ", 1)[0] + "..."
 
     # Fallback if title is empty or too short
@@ -120,6 +128,76 @@ def _extract_title(context: str, raw_match: str, category: str) -> str:
         category_display = category.replace("_", " ").title()
         title = f"{category_display} - {raw_match}"
 
+    return title
+
+
+def _extract_title_from_table_row(line: str, raw_match: str) -> str:
+    """Extract the topic/title from a pipe-delimited table row.
+
+    Common table formats:
+    - "Class# | Date | Topic | HW#"
+    - "Week 1 | Jan 12 | Introduction to CS; Course overview"
+    - " | Feb 13 | Homework 2 Due: Control Flow"
+    """
+    # Split by pipe and clean each cell
+    cells = [c.strip() for c in line.split("|")]
+    # Remove empty cells
+    cells = [c for c in cells if c]
+
+    # Remove the cell that contains the date match
+    non_date_cells: list[str] = []
+    for cell in cells:
+        if raw_match in cell:
+            # Check if there's useful text beyond the date in this cell
+            remainder = cell.replace(raw_match, "").strip()
+            remainder = re.sub(r"^[\s\-–—:,]+", "", remainder).strip()
+            if len(remainder) > 2:
+                non_date_cells.append(remainder)
+        else:
+            non_date_cells.append(cell)
+
+    if not non_date_cells:
+        return ""
+
+    # Heuristic: pick the longest non-numeric cell as the topic
+    # (Class#, Week#, HW# are short and numeric)
+    best = ""
+    for cell in non_date_cells:
+        # Skip cells that are just numbers (class numbers, HW numbers, week numbers)
+        if re.match(r"^\d+$", cell.strip()):
+            continue
+        # Skip cells that are just "Week N" or "Section N: ..."
+        stripped = cell.strip()
+        if re.match(r"^(Week|Section)\s+\d+", stripped, re.IGNORECASE):
+            # Keep the part after "Section N:" if it has a topic
+            section_match = re.match(r"^Section\s+\d+\s*:\s*(.+)", stripped, re.IGNORECASE)
+            if section_match:
+                candidate_title = section_match.group(1).strip()
+                if len(candidate_title) > len(best):
+                    best = candidate_title
+            continue
+        # This cell is likely the topic — prefer longer descriptive cells
+        if len(stripped) > len(best):
+            best = stripped
+
+    return best
+
+
+def _extract_title_from_plain_line(line: str, raw_match: str) -> str:
+    """Extract title from a plain text line by removing the date match."""
+    title = line.replace(raw_match, "").strip()
+    # Remove other date-like fragments that might remain after stripping the primary match
+    # e.g. "March 16 - March 20, 2026" -> after removing "March 16" -> "- March 20, 2026"
+    title = re.sub(r"^[\s\-–—:,]+", "", title).strip()
+    # Remove trailing date fragments like "- March 20, 2026" or "- 3/20"
+    title = re.sub(
+        r"[\s\-–—:,]+(?:January|February|March|April|May|June|July|August|September|October|November|December|"
+        r"Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\.?\s+\d{1,2}(?:\s*,?\s*\d{4})?\s*$",
+        "", title, flags=re.IGNORECASE
+    ).strip()
+    title = re.sub(r"[\s\-–—:,]+\d{1,2}/\d{1,2}(?:/\d{2,4})?\s*$", "", title).strip()
+    # Remove "Week N" prefixes
+    title = re.sub(r"^Week\s+\d+\s*", "", title, flags=re.IGNORECASE).strip()
     return title
 
 

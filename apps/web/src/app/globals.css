@@ -1,1 +1,197 @@
 @import "tailwindcss";
+
+/* ── Design Tokens ─────────────────────────────────────────────────────── */
+
+@theme {
+  --font-heading: "Lora", Georgia, "Times New Roman", serif;
+  --font-body: "Inter", system-ui, -apple-system, sans-serif;
+
+  --color-primary-50: oklch(0.97 0.02 265);
+  --color-primary-100: oklch(0.93 0.04 265);
+  --color-primary-200: oklch(0.87 0.07 265);
+  --color-primary-300: oklch(0.78 0.11 265);
+  --color-primary-400: oklch(0.68 0.15 265);
+  --color-primary-500: oklch(0.58 0.19 265);
+  --color-primary-600: oklch(0.50 0.20 265);
+  --color-primary-700: oklch(0.43 0.18 265);
+  --color-primary-800: oklch(0.37 0.15 265);
+  --color-primary-900: oklch(0.30 0.12 265);
+
+  --color-accent-50: oklch(0.98 0.02 85);
+  --color-accent-100: oklch(0.94 0.05 85);
+  --color-accent-200: oklch(0.88 0.10 85);
+  --color-accent-300: oklch(0.80 0.14 85);
+  --color-accent-400: oklch(0.72 0.16 85);
+  --color-accent-500: oklch(0.65 0.17 85);
+  --color-accent-600: oklch(0.55 0.15 85);
+  --color-accent-700: oklch(0.45 0.12 85);
+
+  --color-surface-0: oklch(0.985 0.002 265);
+  --color-surface-50: oklch(0.97 0.003 265);
+  --color-surface-100: oklch(0.94 0.006 265);
+  --color-surface-200: oklch(0.90 0.008 265);
+  --color-surface-300: oklch(0.85 0.010 265);
+  --color-surface-400: oklch(0.70 0.010 265);
+  --color-surface-500: oklch(0.55 0.010 265);
+  --color-surface-600: oklch(0.45 0.010 265);
+  --color-surface-700: oklch(0.35 0.012 265);
+  --color-surface-800: oklch(0.25 0.015 265);
+  --color-surface-850: oklch(0.21 0.015 265);
+  --color-surface-900: oklch(0.17 0.015 265);
+  --color-surface-950: oklch(0.13 0.015 265);
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+}
+
+/* ── Base Styles ───────────────────────────────────────────────────────── */
+
+html {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-surface-50);
+  color: var(--color-surface-900);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.dark body {
+  background-color: var(--color-surface-900);
+  color: var(--color-surface-100);
+}
+
+/* ── Typography ────────────────────────────────────────────────────────── */
+
+.font-heading {
+  font-family: var(--font-heading);
+}
+
+.font-body {
+  font-family: var(--font-body);
+}
+
+/* Tabular numerals for dates */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Dark Mode Surface Utilities ───────────────────────────────────────── */
+
+.surface-card {
+  background-color: white;
+  border-color: var(--color-surface-200);
+}
+
+.dark .surface-card {
+  background-color: var(--color-surface-850);
+  border-color: var(--color-surface-700);
+}
+
+.surface-raised {
+  background-color: var(--color-surface-0);
+}
+
+.dark .surface-raised {
+  background-color: var(--color-surface-800);
+}
+
+/* ── Scrollbar Styling ─────────────────────────────────────────────────── */
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--color-surface-300);
+  border-radius: 3px;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--color-surface-600);
+}
+
+/* ── Focus Ring ────────────────────────────────────────────────────────── */
+
+.focus-ring:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+
+/* ── Skeleton Animation ────────────────────────────────────────────────── */
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-200) 25%,
+    var(--color-surface-100) 50%,
+    var(--color-surface-200) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.dark .skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-700) 25%,
+    var(--color-surface-800) 50%,
+    var(--color-surface-700) 75%
+  );
+  background-size: 200% 100%;
+}
+
+/* ── Timeline Guide ────────────────────────────────────────────────────── */
+
+.timeline-line {
+  position: relative;
+}
+
+.timeline-line::before {
+  content: "";
+  position: absolute;
+  left: 19px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--color-surface-200);
+}
+
+.dark .timeline-line::before {
+  background-color: var(--color-surface-700);
+}
+
+.timeline-dot {
+  position: relative;
+  z-index: 1;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--color-surface-300);
+  flex-shrink: 0;
+}
+
+.timeline-dot.active {
+  background-color: var(--color-primary-500);
+}
+
+.timeline-dot.attention {
+  background-color: var(--color-accent-400);
+}

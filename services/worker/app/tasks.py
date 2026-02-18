@@ -68,7 +68,7 @@ def process_job(self, job_id: str) -> dict:
         # C) Find date candidates
         from shared.extraction.date_finder import find_date_candidates
 
-        candidates = find_date_candidates(pages)
+        candidates = find_date_candidates(pages, filename=job.original_filename)
         if not candidates:
             # No dates found — set to needs_review with a note
             job.status = "needs_review"

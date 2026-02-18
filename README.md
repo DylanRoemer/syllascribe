@@ -100,6 +100,49 @@ syllascribe/
 3. **Optional LLM** (feature-flagged via `USE_LLM_CLASSIFIER=true`) refines titles and categories — but cannot invent events or change dates.
 4. Every event links back to its source text snippet and page number for human verification.
 
+## Design / UX Conventions
+
+### Theme and Dark Mode
+
+The app supports light and dark modes via `next-themes` with Tailwind's `class` strategy. The theme toggle is in the header. The system preference is respected by default. Design tokens (colors, radii, shadows, typography) are defined as CSS custom properties in `globals.css` using Tailwind v4's `@theme` directive.
+
+- **Light mode**: Slate-50 surface, white cards, slate-900 text
+- **Dark mode**: Slate-900 surface, slate-850 cards, slate-100 text
+- No pure black (`#000`) or pure white (`#fff`) backgrounds
+
+### Typography
+
+- **Headings**: Lora (serif) — loaded via `next/font/google`
+- **Body**: Inter (sans) — loaded via `next/font/google`
+- **Dates**: Tabular numerals (`font-variant-numeric: tabular-nums`) for alignment
+
+### "Needs Attention" Signal
+
+Events that are ambiguous or have low confidence (below 60%) are flagged as needing review:
+
+- **Timeline row**: Amber-tinted background, amber "Review" badge with warning icon
+- **Timeline dot**: Gold/amber color instead of neutral gray
+- **Inspector panel**: The `NeedsAttentionCard` shows total counts and provides filter buttons to isolate these events
+- **Filter**: The "Needs attention" filter pill shows only flagged events
+
+This uses an amber/gold accent palette — never red, which is reserved for actual errors.
+
+### Evidence and Source Verification
+
+Every extracted event carries source evidence (page number, source kind, raw text excerpt). This is accessible in the **Inspector Panel** (right pane on desktop, bottom sheet on mobile) when an event is selected. The matched date string is highlighted in the excerpt. Evidence is always visible on selection — there is no toggle to hide it.
+
+### Component Architecture
+
+The review screen uses a split-view layout:
+
+- **Left pane**: `TimelineEventList` — scrollable, grouped by date with sticky headers and a vertical timeline guide line
+- **Right pane**: `InspectorPanel` — sticky, shows filters/overview when nothing is selected, edit form + evidence when one event is selected, bulk actions when multiple are selected
+- **Mobile**: Single-column timeline with a `MobileBottomSheet` for the inspector, and a sticky bottom action bar
+
+### Autosave
+
+Edits are autosaved after 1.2 seconds of inactivity via a debounced PUT to the existing events endpoint. Save status ("Saving..." / "Saved" / error) is shown in the top action bar with `aria-live="polite"` for screen readers.
+
 ## Troubleshooting
 
 - **Postgres connection refused**: Ensure `docker-compose up -d` is running and port 5432 is free.
