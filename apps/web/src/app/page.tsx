@@ -1,10 +1,28 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { UploadDropzone } from "@/components/UploadDropzone";
+import { isApiMisconfiguredForProduction } from "@/lib/api";
 
 export default function HomePage() {
+  const [showMisconfiguredBanner, setShowMisconfiguredBanner] = useState(false);
+
+  useEffect(() => {
+    setShowMisconfiguredBanner(isApiMisconfiguredForProduction());
+  }, []);
+
   return (
     <div className="flex flex-col items-center">
+      {/* ── API misconfiguration warning (production only) ─────────────── */}
+      {showMisconfiguredBanner && (
+        <div
+          className="w-full max-w-2xl mb-4 rounded-lg border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-900/20 px-4 py-3 text-sm text-amber-800 dark:text-amber-200"
+          role="alert"
+        >
+          This app is not configured to talk to the API. Uploads will not work.
+        </div>
+      )}
+
       {/* ── Hero ─────────────────────────────────────────────────────── */}
       <section className="pt-12 pb-16 text-center max-w-2xl">
         <h1 className="font-heading text-4xl sm:text-5xl font-semibold tracking-tight text-surface-900 dark:text-surface-50 leading-tight">

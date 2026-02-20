@@ -12,11 +12,19 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from .celery_app import celery_app
 
-# Database setup (sync, since Celery tasks are synchronous)
-DATABASE_URL_SYNC = os.environ.get(
-    "DATABASE_URL_SYNC",
+# Database setup (sync, since Celery tasks are synchronous).
+# Accept DATABASE_URL or DATABASE_URL_SYNC so Railway Add Reference → Postgres (DATABASE_URL) autofills.
+DATABASE_URL_SYNC = os.environ.get("DATABASE_URL_SYNC") or os.environ.get(
+    "DATABASE_URL",
     "postgresql://syllascribe:syllascribe@localhost:5432/syllascribe",
 )
+if DATABASE_URL_SYNC and "@host:" in DATABASE_URL_SYNC:
+    print(
+        "ERROR: DATABASE_URL_SYNC/DATABASE_URL looks like a placeholder (hostname 'host'). "
+        "On Railway, set Worker Variables → Add Reference → Postgres → DATABASE_URL.",
+        file=sys.stderr,
+    )
+    sys.exit(1)
 _engine = create_engine(DATABASE_URL_SYNC)
 _SessionLocal = sessionmaker(bind=_engine)
 

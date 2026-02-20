@@ -15,11 +15,14 @@ from app.models import Job, Course, Event  # noqa: E402, F401
 
 config = context.config
 
-# Override sqlalchemy.url from environment variable
-database_url = os.environ.get(
-    "DATABASE_URL_SYNC",
+# Override sqlalchemy.url from environment; accept DATABASE_URL so Railway Add Reference → Postgres autofills
+database_url = os.environ.get("DATABASE_URL_SYNC") or os.environ.get(
+    "DATABASE_URL",
     "postgresql://syllascribe:syllascribe@localhost:5432/syllascribe",
 )
+# Alembic needs sync URL; convert if Railway gave postgresql+asyncpg
+if database_url and "postgresql+asyncpg://" in database_url:
+    database_url = database_url.replace("postgresql+asyncpg://", "postgresql://", 1)
 # Fail fast with clear instructions if a placeholder URL is used (e.g. on Railway)
 if database_url and "@host:" in database_url:
     print(

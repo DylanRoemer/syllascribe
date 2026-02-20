@@ -22,5 +22,5 @@ WORKDIR /app/services/api
 
 EXPOSE 8000
 
-# Run migrations then start API (use shell so Railway custom start command is not needed)
-CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+# Run migrations then start API; use PORT from env so Railway autofill works (default 8000)
+CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

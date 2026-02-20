@@ -20,4 +20,5 @@ COPY --from=builder /app/public ./public
 
 EXPOSE 3000
 
+# Next.js standalone server reads PORT from env; Railway injects PORT so no override needed
 CMD ["node", "server.js"]

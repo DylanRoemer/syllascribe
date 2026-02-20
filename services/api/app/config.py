@@ -45,6 +45,17 @@ class Settings(BaseSettings):
             )
         return self
 
+    @model_validator(mode="after")
+    def derive_sync_url_from_database_url(self: "Settings") -> "Settings":
+        """When only DATABASE_URL is set (e.g. Railway Add Reference → Postgres), use it for sync too."""
+        if not self.DATABASE_URL.startswith("postgresql"):
+            return self
+        # If DATABASE_URL_SYNC is still SQLite default, derive from DATABASE_URL so one Reference fills both
+        if self.DATABASE_URL_SYNC.startswith("sqlite://"):
+            sync_url = self.DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://", 1)
+            return self.model_copy(update={"DATABASE_URL_SYNC": sync_url})
+        return self
+
 
 settings = Settings()
 _fail_if_placeholder_url("DATABASE_URL", settings.DATABASE_URL)
