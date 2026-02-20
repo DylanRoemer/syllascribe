@@ -31,12 +31,13 @@ For **each** of these services (API, Worker, Web), add this **Variable** in Rail
 
 ### Worker: Redis and Postgres must use References
 
-If the Worker log shows `Cannot connect to redis://...@host:6379... No address associated with hostname`, the Worker is using a **placeholder** URL. On Railway you must set:
+The Worker loads the API config (so it needs **DATABASE_URL** as well as **DATABASE_URL_SYNC**). If the Worker log shows `Cannot connect to redis://...@host:6379...` or `DATABASE_URL looks like a placeholder`, set these via **Add Reference** (do **not** paste literal URLs with `host`):
 
-- **REDIS_URL** → **Add Reference** → select your Redis service → choose `REDIS_URL`
-- **DATABASE_URL_SYNC** → **Add Reference** → select your Postgres service → choose a sync URL (e.g. `DATABASE_URL` if it uses `postgresql://`)
+- **DATABASE_URL** → **Add Reference** → your **Postgres** service → **DATABASE_URL**
+- **DATABASE_URL_SYNC** → **Add Reference** → your **Postgres** service → **DATABASE_URL** (same reference)
+- **REDIS_URL** → **Add Reference** → your **Redis** service → **REDIS_URL**
 
-Do **not** paste literal URLs containing `host` — that hostname does not resolve inside Railway’s network. References inject the correct internal host (e.g. `redis.railway.internal`).
+References inject the correct internal host (e.g. `postgres.railway.internal`, `redis.railway.internal`).
 
 Reference: [Railway – Custom Dockerfile path](https://docs.railway.app/deploy/dockerfiles#custom-dockerfile-path)
 
@@ -60,7 +61,7 @@ This means the service is using a **placeholder** database URL (e.g. `postgresql
 2. For **DATABASE_URL** and **DATABASE_URL_SYNC**, use **Add Reference** → your **Postgres** service → choose **DATABASE_URL** (or the URL variable Postgres exposes). Set **both** API variables to that same reference; the app uses the sync URL for Alembic and converts the async one to `postgresql+asyncpg://` internally.
 3. Set **REDIS_URL** via **Add Reference** → your **Redis** service → **REDIS_URL**.
 
-**Fix for Worker service:** Same idea: set **DATABASE_URL_SYNC** (and **REDIS_URL**) via **Add Reference** → Postgres / Redis. Do not use literal `host` URLs.
+**Fix for Worker service:** The Worker loads the API’s config (via `app.models`), which checks **DATABASE_URL** as well as **DATABASE_URL_SYNC**. Set **both** via **Add Reference** → your **Postgres** service → **DATABASE_URL** (same reference for both). Also set **REDIS_URL** via **Add Reference** → your **Redis** service. Do not use literal `host` URLs.
 
 ---
 

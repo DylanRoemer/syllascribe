@@ -6,6 +6,7 @@
   --font-heading: "Lora", Georgia, "Times New Roman", serif;
   --font-body: "Inter", system-ui, -apple-system, sans-serif;
 
+  /* Primary: deep indigo (unchanged) */
   --color-primary-50: oklch(0.97 0.02 265);
   --color-primary-100: oklch(0.93 0.04 265);
   --color-primary-200: oklch(0.87 0.07 265);
@@ -17,6 +18,7 @@
   --color-primary-800: oklch(0.37 0.15 265);
   --color-primary-900: oklch(0.30 0.12 265);
 
+  /* Accent: amber/gold (unchanged) */
   --color-accent-50: oklch(0.98 0.02 85);
   --color-accent-100: oklch(0.94 0.05 85);
   --color-accent-200: oklch(0.88 0.10 85);
@@ -26,19 +28,20 @@
   --color-accent-600: oklch(0.55 0.15 85);
   --color-accent-700: oklch(0.45 0.12 85);
 
-  --color-surface-0: oklch(0.985 0.002 265);
-  --color-surface-50: oklch(0.97 0.003 265);
-  --color-surface-100: oklch(0.94 0.006 265);
-  --color-surface-200: oklch(0.90 0.008 265);
-  --color-surface-300: oklch(0.85 0.010 265);
-  --color-surface-400: oklch(0.70 0.010 265);
-  --color-surface-500: oklch(0.55 0.010 265);
-  --color-surface-600: oklch(0.45 0.010 265);
-  --color-surface-700: oklch(0.35 0.012 265);
-  --color-surface-800: oklch(0.25 0.015 265);
-  --color-surface-850: oklch(0.21 0.015 265);
-  --color-surface-900: oklch(0.17 0.015 265);
-  --color-surface-950: oklch(0.13 0.015 265);
+  /* Light mode: neutral slate (low chroma, cool gray) */
+  --color-surface-0: oklch(0.995 0.002 250);
+  --color-surface-50: oklch(0.98 0.005 250);
+  --color-surface-100: oklch(0.955 0.006 250);
+  --color-surface-200: oklch(0.91 0.008 250);
+  --color-surface-300: oklch(0.86 0.01 250);
+  --color-surface-400: oklch(0.65 0.015 250);
+  --color-surface-500: oklch(0.50 0.018 250);
+  --color-surface-600: oklch(0.40 0.02 250);
+  --color-surface-700: oklch(0.32 0.02 250);
+  --color-surface-800: oklch(0.25 0.02 250);
+  --color-surface-850: oklch(0.21 0.02 250);
+  --color-surface-900: oklch(0.20 0.022 250);
+  --color-surface-950: oklch(0.14 0.02 250);
 
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
@@ -64,7 +67,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-.dark body {
+/* Dark mode: switch to dark background and light text */
+html.dark body {
   background-color: var(--color-surface-900);
   color: var(--color-surface-100);
 }
@@ -87,11 +91,11 @@ body {
 /* ── Dark Mode Surface Utilities ───────────────────────────────────────── */
 
 .surface-card {
-  background-color: white;
+  background-color: #ffffff;
   border-color: var(--color-surface-200);
 }
 
-.dark .surface-card {
+html.dark .surface-card {
   background-color: var(--color-surface-850);
   border-color: var(--color-surface-700);
 }
@@ -100,7 +104,7 @@ body {
   background-color: var(--color-surface-0);
 }
 
-.dark .surface-raised {
+html.dark .surface-raised {
   background-color: var(--color-surface-800);
 }
 
@@ -119,7 +123,7 @@ body {
   border-radius: 3px;
 }
 
-.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+html.dark .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: var(--color-surface-600);
 }
 
@@ -148,7 +152,7 @@ body {
   animation: shimmer 1.5s ease-in-out infinite;
 }
 
-.dark .skeleton {
+html.dark .skeleton {
   background: linear-gradient(
     90deg,
     var(--color-surface-700) 25%,
@@ -174,7 +178,7 @@ body {
   background-color: var(--color-surface-200);
 }
 
-.dark .timeline-line::before {
+html.dark .timeline-line::before {
   background-color: var(--color-surface-700);
 }
 
