@@ -49,6 +49,20 @@
   --radius-xl: 1rem;
 }
 
+/* Light mode: primary = muted blue (hue 235, low chroma — reads blue, not purple) */
+html:not(.dark) {
+  --color-primary-50: oklch(0.97 0.008 235);
+  --color-primary-100: oklch(0.94 0.015 235);
+  --color-primary-200: oklch(0.88 0.028 235);
+  --color-primary-300: oklch(0.78 0.04 235);
+  --color-primary-400: oklch(0.65 0.05 235);
+  --color-primary-500: oklch(0.55 0.055 235);
+  --color-primary-600: oklch(0.48 0.06 235);
+  --color-primary-700: oklch(0.40 0.05 235);
+  --color-primary-800: oklch(0.33 0.04 235);
+  --color-primary-900: oklch(0.27 0.03 235);
+}
+
 /* ── Base Styles ───────────────────────────────────────────────────────── */
 
 html {

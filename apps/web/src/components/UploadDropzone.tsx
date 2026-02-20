@@ -86,7 +86,7 @@ export function UploadDropzone() {
           ${
             isDragging
               ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20 scale-[1.01]"
-              : "border-surface-300 dark:border-surface-600 surface-card hover:border-primary-400 dark:hover:border-primary-500 hover:shadow-sm"
+              : "border-surface-300 dark:border-surface-600 bg-surface-100/60 dark:bg-surface-800/40 hover:border-primary-400 dark:hover:border-primary-500 hover:shadow-sm"
           }
           ${isUploading ? "pointer-events-none opacity-60" : ""}
         `}

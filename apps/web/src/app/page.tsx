@@ -26,7 +26,7 @@ export default function HomePage() {
       <UploadDropzone />
 
       {/* ── Trust Row ────────────────────────────────────────────────── */}
-      <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-surface-500 dark:text-surface-400">
+      <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-surface-600 dark:text-surface-400">
         <TrustItem icon={<LockIcon />} text="No account required" />
         <TrustItem icon={<CalendarIcon />} text="Google / Apple / Outlook" />
         <TrustItem icon={<ClockIcon />} text="Files deleted after 7 days" />
