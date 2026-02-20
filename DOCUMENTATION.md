@@ -38,8 +38,11 @@ Environment: `.env` at project root. On Railway, **Worker** must use **Add Refer
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `NEXT_PUBLIC_API_BASE_URL` | Yes | Public URL of the API (e.g. `https://your-api.up.railway.app`). |
+| `NEXT_PUBLIC_API_BASE_URL` | No* | Public URL of the API (e.g. `https://your-api.up.railway.app`). Baked in at build time; if unset in production, the client uses same-origin and the proxy below is used. |
+| `API_BASE_URL` | No* | Backend URL for the **server-side** proxy. Set this when `NEXT_PUBLIC_API_BASE_URL` is unset so that requests to `/api/*` on the Web app are forwarded to the FastAPI service. Runtime-only (no rebuild needed). |
 | `PORT` | No | Port for Next.js (default 3000; Railway often uses 8080). |
+
+\* Set either `NEXT_PUBLIC_API_BASE_URL` (client talks to API directly) or `API_BASE_URL` (client talks to same-origin and Next.js proxies to API). Setting both is fine; proxy uses `API_BASE_URL` first.
 
 ---
 
@@ -123,6 +126,7 @@ syllascribe/
 | OCR fails | Missing system libs | Install `tesseract` and `poppler` (e.g. `brew install tesseract poppler` on macOS). |
 | Alembic errors | Wrong DB URL scheme | Use `postgresql://` for `DATABASE_URL_SYNC`, not `postgresql+asyncpg://`. |
 | CORS errors in browser | API not allowing Web origin | Add Web app URL to API `ALLOWED_ORIGINS`. |
-| Upload hangs or never completes (production) | Web calling wrong API | Set Web service variable `NEXT_PUBLIC_API_BASE_URL` to the API’s public URL (e.g. `https://your-api.up.railway.app`). Redeploy Web so the env is baked in; hard-refresh (Cmd+Shift+R) if you still see localhost. |
+| Upload hangs or never completes (production) | Web calling wrong API | Set `NEXT_PUBLIC_API_BASE_URL` to the API’s public URL (e.g. `https://your-api.up.railway.app`). Set `NEXT_PUBLIC_API_BASE_URL` (and redeploy) or `API_BASE_URL`; hard-refresh if you still see localhost. |
+| Upload returns 404 (production, request to Web /api/upload) | Proxy has no backend URL | Set Web service `API_BASE_URL` to the FastAPI public URL. No rebuild needed. |
 
 For more context see **Troubleshooting** in [README.md](README.md) and **Worker: Redis and Postgres must use References** in [RAILWAY_DOCKERFILE_SETUP.md](RAILWAY_DOCKERFILE_SETUP.md).
