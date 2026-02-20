@@ -96,16 +96,7 @@ export function uploadFileWithProgress(
       reject(new Error("Upload timed out. Check your connection and try again, or use a smaller file."));
     }, UPLOAD_TIMEOUT_MS);
 
-    let progressLogged = false;
     xhr.upload.addEventListener("progress", (e) => {
-      if (!progressLogged) {
-        // #region agent log
-        const _logC = { location: "api.ts:progress", message: "first progress event", data: { lengthComputable: e.lengthComputable, loaded: e.loaded, total: e.total }, hypothesisId: "C" };
-        console.log("[debug]", _logC);
-        fetch("http://127.0.0.1:7243/ingest/4fa9d56-0c07-4559-a3dd-8cbc6c272e7d", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ..._logC, timestamp: Date.now() }) }).catch(() => {});
-        // #endregion
-        progressLogged = true;
-      }
       if (!onProgress) return;
       let percent: number;
       if (e.lengthComputable && e.total > 0) {
@@ -119,11 +110,6 @@ export function uploadFileWithProgress(
     });
 
     xhr.addEventListener("load", () => {
-      // #region agent log
-      const _logLoad = { location: "api.ts:load", message: "xhr load", data: { status: xhr.status, responseURL: xhr.responseURL?.slice(0, 80) }, hypothesisId: "D" };
-      console.log("[debug]", _logLoad);
-      fetch("http://127.0.0.1:7243/ingest/4fa9d56-0c07-4559-a3dd-8cbc6c272e7d", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ..._logLoad, timestamp: Date.now() }) }).catch(() => {});
-      // #endregion
       clearTimeout(timeoutId);
       if (onProgress) onProgress(100);
       if (xhr.status >= 200 && xhr.status < 300) {
@@ -146,32 +132,16 @@ export function uploadFileWithProgress(
     });
 
     xhr.addEventListener("error", () => {
-      // #region agent log
-      const _logErr = { location: "api.ts:error", message: "xhr error (network)", data: { responseURL: xhr.responseURL?.slice(0, 80) }, hypothesisId: "D" };
-      console.log("[debug]", _logErr);
-      fetch("http://127.0.0.1:7243/ingest/4fa9d56-0c07-4559-a3dd-8cbc6c272e7d", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ..._logErr, timestamp: Date.now() }) }).catch(() => {});
-      // #endregion
       clearTimeout(timeoutId);
       reject(new Error("Network error. Check that the API is reachable and try again."));
     });
 
     xhr.addEventListener("abort", () => {
-      // #region agent log
-      const _logAbort = { location: "api.ts:abort", message: "xhr abort", data: { responseURL: xhr.responseURL?.slice(0, 80) }, hypothesisId: "E" };
-      console.log("[debug]", _logAbort);
-      fetch("http://127.0.0.1:7243/ingest/4fa9d56-0c07-4559-a3dd-8cbc6c272e7d", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ..._logAbort, timestamp: Date.now() }) }).catch(() => {});
-      // #endregion
       clearTimeout(timeoutId);
       if (!xhr.responseURL) reject(new Error("Upload timed out. Check your connection and try again."));
     });
 
-    const uploadUrl = `${API_BASE}/api/upload`;
-    // #region agent log
-    const _logB = { location: "api.ts:send", message: "xhr open/send", data: { API_BASE, uploadUrl }, hypothesisId: "B" };
-    console.log("[debug]", _logB);
-    fetch("http://127.0.0.1:7243/ingest/4fa9d56-0c07-4559-a3dd-8cbc6c272e7d", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ..._logB, timestamp: Date.now() }) }).catch(() => {});
-    // #endregion
-    xhr.open("POST", uploadUrl);
+    xhr.open("POST", `${API_BASE}/api/upload`);
     xhr.send(formData);
   });
 }
