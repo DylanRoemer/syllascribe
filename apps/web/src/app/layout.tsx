@@ -21,6 +21,12 @@ export const metadata: Metadata = {
   title: "Syllascribe",
   description:
     "Upload a course syllabus, extract key dates, review and edit, then export as .ics calendar.",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+  },
 };
 
 export default function RootLayout({
