@@ -46,7 +46,7 @@ export default function RootLayout({
                 </span>
               </a>
               <div className="flex items-center gap-3">
-                <span className="hidden sm:block text-sm text-surface-500 dark:text-surface-400">
+                <span className="hidden sm:block text-sm text-surface-700 dark:text-surface-400">
                   Syllabus &rarr; Calendar
                 </span>
                 <ThemeToggle />

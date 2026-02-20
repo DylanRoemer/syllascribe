@@ -120,7 +120,7 @@ export function UploadDropzone() {
                 browse files
               </span>
             </p>
-            <p className="mt-2 text-sm text-surface-500 dark:text-surface-400">
+            <p className="mt-2 text-sm text-surface-700 dark:text-surface-400">
               PDF, DOCX, PNG, or JPG — up to {MAX_SIZE_MB} MB
             </p>
           </>

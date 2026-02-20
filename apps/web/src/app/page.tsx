@@ -12,10 +12,10 @@ export default function HomePage() {
           <br />
           Into a Calendar
         </h1>
-        <p className="mt-5 text-lg text-surface-600 dark:text-surface-400 leading-relaxed max-w-xl mx-auto">
+        <p className="mt-5 text-lg text-surface-800 dark:text-surface-400 leading-relaxed max-w-xl mx-auto">
           Upload a course syllabus and get every key date — assignments, exams,
           holidays — extracted, reviewed, and exported as an{" "}
-          <code className="rounded bg-primary-100 dark:bg-primary-900/30 px-1.5 py-0.5 text-sm font-medium text-primary-700 dark:text-primary-300">
+          <code className="rounded bg-primary-100 dark:bg-primary-900/30 px-1.5 py-0.5 text-sm font-medium text-primary-800 dark:text-primary-300">
             .ics
           </code>{" "}
           calendar file.
@@ -26,7 +26,7 @@ export default function HomePage() {
       <UploadDropzone />
 
       {/* ── Trust Row ────────────────────────────────────────────────── */}
-      <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-surface-600 dark:text-surface-400">
+      <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-surface-800 dark:text-surface-400">
         <TrustItem icon={<LockIcon />} text="No account required" />
         <TrustItem icon={<CalendarIcon />} text="Google / Apple / Outlook" />
         <TrustItem icon={<ClockIcon />} text="Files deleted after 7 days" />
@@ -85,7 +85,7 @@ export default function HomePage() {
         <h2 className="font-heading text-2xl font-semibold text-surface-900 dark:text-surface-100 mb-4">
           Privacy and Retention
         </h2>
-        <p className="text-surface-600 dark:text-surface-400 leading-relaxed">
+        <p className="text-surface-800 dark:text-surface-400 leading-relaxed">
           Uploaded files are processed on our server and automatically deleted
           after 7 days. No account is required. No data is shared with third
           parties. Calendar extraction runs entirely with deterministic rules —
@@ -100,7 +100,7 @@ export default function HomePage() {
             <div className="h-3 w-3 rounded-full bg-surface-300 dark:bg-surface-600" />
             <div className="h-3 w-3 rounded-full bg-surface-300 dark:bg-surface-600" />
             <div className="h-3 w-3 rounded-full bg-surface-300 dark:bg-surface-600" />
-            <span className="ml-3 text-xs text-surface-500 dark:text-surface-400">
+            <span className="ml-3 text-xs text-surface-700 dark:text-surface-400">
               Review extracted events
             </span>
           </div>
@@ -166,7 +166,7 @@ function StepCard({
           {icon}
         </div>
         <div>
-          <span className="text-xs font-medium text-surface-400 dark:text-surface-500 uppercase tracking-wider">
+          <span className="text-xs font-medium text-surface-600 dark:text-surface-500 uppercase tracking-wider">
             Step {number}
           </span>
           <h3 className="text-base font-semibold text-surface-900 dark:text-surface-100">
@@ -174,7 +174,7 @@ function StepCard({
           </h3>
         </div>
       </div>
-      <p className="text-sm text-surface-600 dark:text-surface-400 leading-relaxed">
+      <p className="text-sm text-surface-800 dark:text-surface-400 leading-relaxed">
         {description}
       </p>
     </div>
@@ -185,7 +185,7 @@ function FormatCard({ label, detail }: { label: string; detail: string }) {
   return (
     <div className="rounded-lg border border-surface-200 dark:border-surface-700 surface-card px-5 py-4 text-center">
       <p className="font-semibold text-surface-900 dark:text-surface-100">{label}</p>
-      <p className="mt-1 text-sm text-surface-500 dark:text-surface-400">{detail}</p>
+      <p className="mt-1 text-sm text-surface-700 dark:text-surface-400">{detail}</p>
     </div>
   );
 }
@@ -208,7 +208,7 @@ function MockEventRow({
     assignment: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
     reading: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
     holiday: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
-    other: "bg-surface-200 text-surface-600 dark:bg-surface-700 dark:text-surface-300",
+    other: "bg-surface-200 text-surface-800 dark:bg-surface-700 dark:text-surface-300",
   };
 
   return (
@@ -217,7 +217,7 @@ function MockEventRow({
         ? "bg-accent-50 dark:bg-accent-900/10 border border-accent-200 dark:border-accent-700/50"
         : "bg-surface-50 dark:bg-surface-800/50"
     }`}>
-      <span className="text-sm tabular-nums text-surface-500 dark:text-surface-400 w-24 shrink-0">
+      <span className="text-sm tabular-nums text-surface-700 dark:text-surface-400 w-24 shrink-0">
         {date}
       </span>
       <span className="text-sm font-medium text-surface-900 dark:text-surface-100 flex-1">
@@ -226,7 +226,7 @@ function MockEventRow({
       <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${categoryColors[category] || categoryColors.other}`}>
         {category}
       </span>
-      <span className="text-xs tabular-nums text-surface-400 dark:text-surface-500 w-10 text-right">
+      <span className="text-xs tabular-nums text-surface-600 dark:text-surface-500 w-10 text-right">
         {Math.round(confidence * 100)}%
       </span>
       {attention && (
