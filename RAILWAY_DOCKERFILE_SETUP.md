@@ -39,3 +39,43 @@ If the Worker log shows `Cannot connect to redis://...@host:6379... No address a
 Do **not** paste literal URLs containing `host` — that hostname does not resolve inside Railway’s network. References inject the correct internal host (e.g. `redis.railway.internal`).
 
 Reference: [Railway – Custom Dockerfile path](https://docs.railway.app/deploy/dockerfiles#custom-dockerfile-path)
+
+---
+
+## API: "The executable `cd` could not be found"
+
+The API image already runs migrations and uvicorn via its Dockerfile **CMD**. If Railway has a **custom start command** (e.g. `cd /app/services/api && alembic ... && uvicorn ...`), it overrides the image and runs that string in a way that treats `cd` as the program name, which fails.
+
+**Fix:** In Railway → **API service** → **Settings** (or **Deploy**), find **Start Command** / **Custom Start Command** and **clear it** (leave it empty). Redeploy. The container will then use the image’s CMD: migrations + uvicorn.
+
+---
+
+## API / Worker: "could not translate host name 'host'"
+
+This means the service is using a **placeholder** database URL (e.g. `postgresql://user:password@host:5432/...`) instead of Railway’s real Postgres URL. The hostname `host` does not resolve inside Railway.
+
+**Fix for API service:**
+
+1. In Railway → **API service** → **Variables**.
+2. For **DATABASE_URL** and **DATABASE_URL_SYNC**, use **Add Reference** → your **Postgres** service → choose **DATABASE_URL** (or the URL variable Postgres exposes). Set **both** API variables to that same reference; the app uses the sync URL for Alembic and converts the async one to `postgresql+asyncpg://` internally.
+3. Set **REDIS_URL** via **Add Reference** → your **Redis** service → **REDIS_URL**.
+
+**Fix for Worker service:** Same idea: set **DATABASE_URL_SYNC** (and **REDIS_URL**) via **Add Reference** → Postgres / Redis. Do not use literal `host` URLs.
+
+---
+
+## REDIS_URL still shows `redis://...@host:6379` after Add Reference
+
+If the Redis service shows a real URL (e.g. `redis://...@redis.railway.internal:6379`) but the API or Worker still gets `redis://default:password@host:6379` when you use Add Reference, try this:
+
+1. **Remove any literal REDIS_URL**  
+   On the **API** (and **Worker**) service Variables tab, delete **REDIS_URL** if it exists. If you or Railway ever pasted from `.env.railway.example`, that would have created a *literal* variable with `host:6379`; that can override or conflict with the reference.
+
+2. **Check project / shared variables**  
+   In Railway, open **Project** (or **Shared**) **Variables** (if your plan has them). If there is a **REDIS_URL** there set to `redis://...@host:6379`, remove it or leave it unset so only the **service-level** reference is used.
+
+3. **Add the reference again**  
+   On the API service: **Add Variable** → **VARIABLE NAME** = `REDIS_URL` → click **Add Reference**. In the list, pick your **Redis** service (the actual Redis database service, e.g. named "Redis"), then choose **REDIS_URL** (or the URL variable that shows the real host like `redis.railway.internal`). Do **not** pick a "Shared" or template variable that still has `host`.
+
+4. **Fallback: paste the real URL once**  
+   If the reference still fills the placeholder: open your **Redis** service → **Variables**, copy the full **REDIS_URL** value (e.g. `redis://default:xxxxx@redis.railway.internal:6379`). On the **API** service, add **REDIS_URL** and paste that value as a normal (non-reference) variable. The API will then use the real Redis. If Redis credentials ever change, you’ll need to update this value. Prefer using Add Reference when it works.

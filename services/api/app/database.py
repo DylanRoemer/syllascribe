@@ -5,11 +5,16 @@ from sqlalchemy.orm import DeclarativeBase
 
 from .config import settings
 
+# Use async driver for Postgres; Railway often exposes postgresql:// so convert once
+_db_url = settings.DATABASE_URL
+if _db_url.startswith("postgresql://") and not _db_url.startswith("postgresql+asyncpg://"):
+    _db_url = _db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+
 # SQLite needs connect_args for check_same_thread
-_is_sqlite = settings.DATABASE_URL.startswith("sqlite")
+_is_sqlite = _db_url.startswith("sqlite")
 _connect_args = {"check_same_thread": False} if _is_sqlite else {}
 
-engine = create_async_engine(settings.DATABASE_URL, echo=False, connect_args=_connect_args)
+engine = create_async_engine(_db_url, echo=False, connect_args=_connect_args)
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 

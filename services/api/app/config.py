@@ -1,12 +1,25 @@
 """Application configuration loaded from environment variables."""
 
 import os
+import sys
+from pydantic import model_validator
 from pydantic_settings import BaseSettings
 
 # Resolve a stable absolute path for the SQLite DB file (next to the api service dir)
 _THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 _DEFAULT_SQLITE_PATH = os.path.join(_THIS_DIR, "..", "..", "..", "data", "syllascribe.db")
 _DEFAULT_SQLITE_PATH = os.path.abspath(_DEFAULT_SQLITE_PATH)
+
+
+def _fail_if_placeholder_url(name: str, value: str) -> None:
+    """Exit with clear instructions if value looks like a placeholder (e.g. @host:)."""
+    if value and "@host:" in value:
+        print(
+            f"ERROR: {name} looks like a placeholder (hostname 'host'). "
+            "On Railway, set it via Add Reference → Postgres (e.g. DATABASE_URL / DATABASE_URL_SYNC).",
+            file=sys.stderr,
+        )
+        sys.exit(1)
 
 
 class Settings(BaseSettings):
@@ -22,5 +35,17 @@ class Settings(BaseSettings):
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
+    @model_validator(mode="after")
+    def ensure_async_database_url(self: "Settings") -> "Settings":
+        """Use async driver for Postgres; Railway exposes postgresql:// so convert once."""
+        url = self.DATABASE_URL
+        if url.startswith("postgresql://") and "asyncpg" not in url:
+            return self.model_copy(
+                update={"DATABASE_URL": url.replace("postgresql://", "postgresql+asyncpg://", 1)}
+            )
+        return self
+
 
 settings = Settings()
+_fail_if_placeholder_url("DATABASE_URL", settings.DATABASE_URL)
+_fail_if_placeholder_url("DATABASE_URL_SYNC", settings.DATABASE_URL_SYNC)

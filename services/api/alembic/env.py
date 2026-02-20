@@ -20,6 +20,14 @@ database_url = os.environ.get(
     "DATABASE_URL_SYNC",
     "postgresql://syllascribe:syllascribe@localhost:5432/syllascribe",
 )
+# Fail fast with clear instructions if a placeholder URL is used (e.g. on Railway)
+if database_url and "@host:" in database_url:
+    print(
+        "ERROR: DATABASE_URL_SYNC looks like a placeholder (hostname 'host'). "
+        "On Railway, set it via Add Reference → Postgres (e.g. DATABASE_URL_SYNC from Postgres).",
+        file=sys.stderr,
+    )
+    sys.exit(1)
 config.set_main_option("sqlalchemy.url", database_url)
 
 if config.config_file_name is not None:
