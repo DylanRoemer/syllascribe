@@ -2,6 +2,8 @@
 
 Upload a course syllabus, extract key dates, review and edit them, then export as an `.ics` calendar file.
 
+For a **detailed reference** (environment variables, API endpoints, extraction pipeline, deployment checklist, troubleshooting table), see **[DOCUMENTATION.md](DOCUMENTATION.md)**.
+
 ## Architecture
 
 - **Frontend**: Next.js (TypeScript) + Tailwind CSS
@@ -93,6 +95,8 @@ syllascribe/
   data/uploads/          # Local file storage (dev)
 ```
 
+See [DOCUMENTATION.md](DOCUMENTATION.md#4-project-structure-detailed) for a detailed structure with key files.
+
 ## Extraction Approach
 
 1. **Deterministic rules** find candidate dates using regex patterns and parse them with `dateparser`.
@@ -147,7 +151,7 @@ Edits are autosaved after 1.2 seconds of inactivity via a debounced PUT to the e
 
 - Use `.env.railway.example` as a template. For **Worker** variables, set `DATABASE_URL_SYNC` and `REDIS_URL` via **Add Reference** → Postgres / Redis — do not paste literal URLs with `host`; the worker will fail to connect.
 - The API Dockerfile runs `alembic upgrade head` before starting uvicorn so migrations run on deploy.
-- See `RAILWAY_DOCKERFILE_SETUP.md` for Dockerfile-based Railway setup.
+- See [RAILWAY_DOCKERFILE_SETUP.md](RAILWAY_DOCKERFILE_SETUP.md) for Dockerfile path and config; see [DOCUMENTATION.md](DOCUMENTATION.md#5-deployment-checklist-railway) for a full deployment checklist.
 
 ## Troubleshooting
 
