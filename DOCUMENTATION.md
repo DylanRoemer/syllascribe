@@ -123,6 +123,6 @@ syllascribe/
 | OCR fails | Missing system libs | Install `tesseract` and `poppler` (e.g. `brew install tesseract poppler` on macOS). |
 | Alembic errors | Wrong DB URL scheme | Use `postgresql://` for `DATABASE_URL_SYNC`, not `postgresql+asyncpg://`. |
 | CORS errors in browser | API not allowing Web origin | Add Web app URL to API `ALLOWED_ORIGINS`. |
-| Upload hangs or never completes (production) | Web calling wrong API | Set Web service variable `NEXT_PUBLIC_API_BASE_URL` to the API’s public URL (e.g. `https://your-api.up.railway.app`). |
+| Upload hangs or never completes (production) | Web calling wrong API | Set Web service variable `NEXT_PUBLIC_API_BASE_URL` to the API’s public URL (e.g. `https://your-api.up.railway.app`). Redeploy Web so the env is baked in; hard-refresh (Cmd+Shift+R) if you still see localhost. |
 
 For more context see **Troubleshooting** in [README.md](README.md) and **Worker: Redis and Postgres must use References** in [RAILWAY_DOCKERFILE_SETUP.md](RAILWAY_DOCKERFILE_SETUP.md).

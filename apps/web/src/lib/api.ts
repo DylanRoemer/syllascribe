@@ -2,25 +2,46 @@
  * API client for the Syllascribe FastAPI backend.
  *
  * In production (e.g. Railway), set NEXT_PUBLIC_API_BASE_URL on the Web service
- * to your API's public URL (e.g. https://sylliscribe-api-production.up.railway.app).
- * Otherwise the browser will try to upload to localhost and requests will fail or hang.
+ * to your API's public URL. If unset in production, we use the current origin so
+ * the app never sends requests to localhost (e.g. use a reverse proxy so /api goes to the API).
  */
 
-const API_BASE =
+const ENV_API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
+
+/**
+ * Effective API base URL. In the browser, never use localhost when the app is
+ * served from a non-localhost origin (avoids production builds defaulting to localhost).
+ */
+function getApiBaseUrl(): string {
+  if (typeof window === "undefined") {
+    return ENV_API_BASE;
+  }
+  const hostname = window.location.hostname;
+  const origin = window.location.origin;
+  const isProduction = hostname !== "localhost" && hostname !== "127.0.0.1";
+  const envPointsToLocalhost =
+    ENV_API_BASE.includes("localhost") || ENV_API_BASE.includes("127.0.0.1");
+  // Production must never use localhost for API (env is baked at build time; may be unset on Railway)
+  if (isProduction && envPointsToLocalhost) {
+    return origin;
+  }
+  return ENV_API_BASE;
+}
 
 /** True when app is served from a non-localhost origin but API is still localhost (e.g. Web built without NEXT_PUBLIC_API_BASE_URL on Railway). */
 export function isApiMisconfiguredForProduction(): boolean {
   if (typeof window === "undefined") return false;
   const host = window.location.hostname;
   const isLocal = host === "localhost" || host === "127.0.0.1";
+  const apiBase = getApiBaseUrl();
   const apiIsLocal =
-    API_BASE.includes("localhost") || API_BASE.includes("127.0.0.1");
+    apiBase.includes("localhost") || apiBase.includes("127.0.0.1");
   return !isLocal && apiIsLocal;
 }
 
 export function getApiBase(): string {
-  return API_BASE;
+  return getApiBaseUrl();
 }
 
 const UPLOAD_TIMEOUT_MS = 180_000; // 3 minutes for large files on slow connections
@@ -141,7 +162,7 @@ export function uploadFileWithProgress(
       if (!xhr.responseURL) reject(new Error("Upload timed out. Check your connection and try again."));
     });
 
-    xhr.open("POST", `${API_BASE}/api/upload`);
+    xhr.open("POST", `${getApiBaseUrl()}/api/upload`);
     xhr.send(formData);
   });
 }
@@ -151,7 +172,7 @@ export async function uploadFile(file: File): Promise<{ job_id: string }> {
 }
 
 export async function getJob(jobId: string): Promise<JobResponse> {
-  const res = await fetch(`${API_BASE}/api/job/${jobId}`);
+  const res = await fetch(`${getApiBaseUrl()}/api/job/${jobId}`);
   if (!res.ok) {
     throw new Error("Failed to fetch job status");
   }
@@ -159,7 +180,7 @@ export async function getJob(jobId: string): Promise<JobResponse> {
 }
 
 export async function getEvents(jobId: string): Promise<EventsListResponse> {
-  const res = await fetch(`${API_BASE}/api/job/${jobId}/events`);
+  const res = await fetch(`${getApiBaseUrl()}/api/job/${jobId}/events`);
   if (!res.ok) {
     throw new Error("Failed to fetch events");
   }
@@ -170,7 +191,7 @@ export async function updateEvents(
   jobId: string,
   updates: EventUpdate[]
 ): Promise<{ updated: number; deleted: number }> {
-  const res = await fetch(`${API_BASE}/api/job/${jobId}/events`, {
+  const res = await fetch(`${getApiBaseUrl()}/api/job/${jobId}/events`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ updates }),
@@ -182,7 +203,7 @@ export async function updateEvents(
 }
 
 export async function finalizeJob(jobId: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/api/job/${jobId}/finalize`, {
+  const res = await fetch(`${getApiBaseUrl()}/api/job/${jobId}/finalize`, {
     method: "POST",
   });
   if (!res.ok) {
@@ -194,5 +215,5 @@ export function getExportUrl(
   jobId: string,
   includeLowConfidence: boolean = true
 ): string {
-  return `${API_BASE}/api/job/${jobId}/export.ics?include_low_confidence=${includeLowConfidence}`;
+  return `${getApiBaseUrl()}/api/job/${jobId}/export.ics?include_low_confidence=${includeLowConfidence}`;
 }
