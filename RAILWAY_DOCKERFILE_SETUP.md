@@ -29,4 +29,13 @@ For **each** of these services (API, Worker, Web), add this **Variable** in Rail
 
 **Variables:** Use `.env.railway.example` at repo root. In each service Variables tab use **Suggested variables** or paste the relevant section into the **RAW Editor**.
 
+### Worker: Redis and Postgres must use References
+
+If the Worker log shows `Cannot connect to redis://...@host:6379... No address associated with hostname`, the Worker is using a **placeholder** URL. On Railway you must set:
+
+- **REDIS_URL** → **Add Reference** → select your Redis service → choose `REDIS_URL`
+- **DATABASE_URL_SYNC** → **Add Reference** → select your Postgres service → choose a sync URL (e.g. `DATABASE_URL` if it uses `postgresql://`)
+
+Do **not** paste literal URLs containing `host` — that hostname does not resolve inside Railway’s network. References inject the correct internal host (e.g. `redis.railway.internal`).
+
 Reference: [Railway – Custom Dockerfile path](https://docs.railway.app/deploy/dockerfiles#custom-dockerfile-path)

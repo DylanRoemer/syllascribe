@@ -18,10 +18,14 @@ RUN pip install --no-cache-dir -r /app/services/worker/requirements.txt
 COPY services/api /app/services/api
 COPY services/worker /app/services/worker
 
-RUN mkdir -p /app/data/uploads
+RUN mkdir -p /app/data/uploads \
+    && useradd --create-home --shell /bin/bash celery \
+    && chown -R celery:celery /app
 
 ENV UPLOAD_DIR=/app/data/uploads
 
 WORKDIR /app/services/worker
+
+USER celery
 
 CMD ["celery", "-A", "worker_app.celery_app:celery_app", "worker", "--loglevel=info", "--concurrency=2"]
