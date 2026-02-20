@@ -108,7 +108,7 @@ syllascribe/
 2. **Postgres + Redis** — Create Postgres and Redis services; note they provide URLs via References.
 3. **API** — Set variables from `.env.railway.example` (API block). Use References for `DATABASE_URL` / `DATABASE_URL_SYNC` / `REDIS_URL`. Set `ALLOWED_ORIGINS` to your Web URL. The Dockerfile runs `alembic upgrade head` then uvicorn.
 4. **Worker** — Set variables from Worker block. **Must** use **Add Reference** for `DATABASE_URL_SYNC` and `REDIS_URL` (literal `host` will not resolve). Worker runs as non-root user `celery`.
-5. **Web** — Set `NEXT_PUBLIC_API_BASE_URL` to the API’s public URL. Build and start Next.js (Railway may set `PORT=8080`).
+5. **Web** — Set `NEXT_PUBLIC_API_BASE_URL` to the API’s **public** URL (e.g. `https://sylliscribe-api-production.up.railway.app`). If this is missing or wrong, uploads from the browser will go to the wrong host (e.g. localhost) and hang or fail. Build and start Next.js (Railway may set `PORT=8080`).
 6. **Verify** — Check API `/api/health`; upload a PDF and confirm job runs and events appear; export `.ics`.
 
 ---
@@ -123,5 +123,6 @@ syllascribe/
 | OCR fails | Missing system libs | Install `tesseract` and `poppler` (e.g. `brew install tesseract poppler` on macOS). |
 | Alembic errors | Wrong DB URL scheme | Use `postgresql://` for `DATABASE_URL_SYNC`, not `postgresql+asyncpg://`. |
 | CORS errors in browser | API not allowing Web origin | Add Web app URL to API `ALLOWED_ORIGINS`. |
+| Upload hangs or never completes (production) | Web calling wrong API | Set Web service variable `NEXT_PUBLIC_API_BASE_URL` to the API’s public URL (e.g. `https://your-api.up.railway.app`). |
 
 For more context see **Troubleshooting** in [README.md](README.md) and **Worker: Redis and Postgres must use References** in [RAILWAY_DOCKERFILE_SETUP.md](RAILWAY_DOCKERFILE_SETUP.md).
