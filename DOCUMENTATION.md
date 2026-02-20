@@ -6,7 +6,7 @@ This document provides a reference for environment variables, API endpoints, the
 
 ## 1. Environment Variables Reference
 
-Templates: `.env.example` (local), `.env.railway.example` (Railway). On Railway, **Worker** must use **Add Reference** for `DATABASE_URL_SYNC` and `REDIS_URL` — do not use literal `host` URLs.
+Environment: `.env` at project root. On Railway, **Worker** must use **Add Reference** for `DATABASE_URL_SYNC` and `REDIS_URL` — do not use literal `host` URLs.
 
 ### API service
 
@@ -106,7 +106,7 @@ syllascribe/
 
 1. **Dockerfile path** — Set per service via `railway.toml` (config path) or variable `RAILWAY_DOCKERFILE_PATH` (see [RAILWAY_DOCKERFILE_SETUP.md](RAILWAY_DOCKERFILE_SETUP.md)).
 2. **Postgres + Redis** — Create Postgres and Redis services; note they provide URLs via References.
-3. **API** — Set variables from `.env.railway.example` (API block). Use References for `DATABASE_URL` / `DATABASE_URL_SYNC` / `REDIS_URL`. Set `ALLOWED_ORIGINS` to your Web URL. The Dockerfile runs `alembic upgrade head` then uvicorn.
+3. **API** — Set variables from `.env`. Use References for `DATABASE_URL` / `DATABASE_URL_SYNC` / `REDIS_URL`. Set `ALLOWED_ORIGINS` to your Web URL. The Dockerfile runs `alembic upgrade head` then uvicorn.
 4. **Worker** — Set variables from Worker block. **Must** use **Add Reference** for `DATABASE_URL_SYNC` and `REDIS_URL` (literal `host` will not resolve). Worker runs as non-root user `celery`.
 5. **Web** — Set `NEXT_PUBLIC_API_BASE_URL` to the API’s **public** URL (e.g. `https://sylliscribe-api-production.up.railway.app`). If this is missing or wrong, uploads from the browser will go to the wrong host (e.g. localhost) and hang or fail. Build and start Next.js (Railway may set `PORT=8080`).
 6. **Verify** — Check API `/api/health`; upload a PDF and confirm job runs and events appear; export `.ics`.

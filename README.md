@@ -46,8 +46,8 @@ pip install -r services/worker/requirements.txt
 ### 3. Configure Environment
 
 ```bash
-cp .env.example services/api/.env
-cp .env.example services/worker/.env
+cp .env services/api/.env
+cp .env services/worker/.env
 ```
 
 ### 4. Run Database Migrations
@@ -149,7 +149,7 @@ Edits are autosaved after 1.2 seconds of inactivity via a debounced PUT to the e
 
 ## Deployment (Railway)
 
-- Use `.env.railway.example` as a template. For **Worker** variables, set `DATABASE_URL_SYNC` and `REDIS_URL` via **Add Reference** → Postgres / Redis — do not paste literal URLs with `host`; the worker will fail to connect.
+- Use `.env` as a template. For **Worker** variables, set `DATABASE_URL_SYNC` and `REDIS_URL` via **Add Reference** → Postgres / Redis — do not paste literal URLs with `host`; the worker will fail to connect.
 - The API Dockerfile runs `alembic upgrade head` before starting uvicorn so migrations run on deploy.
 - See [RAILWAY_DOCKERFILE_SETUP.md](RAILWAY_DOCKERFILE_SETUP.md) for Dockerfile path and config; see [DOCUMENTATION.md](DOCUMENTATION.md#5-deployment-checklist-railway) for a full deployment checklist.
 
