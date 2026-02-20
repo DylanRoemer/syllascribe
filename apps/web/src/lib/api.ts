@@ -9,6 +9,20 @@
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
+/** True when app is served from a non-localhost origin but API is still localhost (e.g. Web built without NEXT_PUBLIC_API_BASE_URL on Railway). */
+export function isApiMisconfiguredForProduction(): boolean {
+  if (typeof window === "undefined") return false;
+  const host = window.location.hostname;
+  const isLocal = host === "localhost" || host === "127.0.0.1";
+  const apiIsLocal =
+    API_BASE.includes("localhost") || API_BASE.includes("127.0.0.1");
+  return !isLocal && apiIsLocal;
+}
+
+export function getApiBase(): string {
+  return API_BASE;
+}
+
 const UPLOAD_TIMEOUT_MS = 180_000; // 3 minutes for large files on slow connections
 
 // ── Types ───────────────────────────────────────────────────────────────────

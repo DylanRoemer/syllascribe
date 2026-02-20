@@ -1,19 +1,27 @@
 "use client";
 
-import { useCallback, useState, useRef } from "react";
+import { useCallback, useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { uploadFileWithProgress } from "@/lib/api";
+import { uploadFileWithProgress, isApiMisconfiguredForProduction } from "@/lib/api";
 
 const ACCEPTED = ".pdf,.docx,.png,.jpg,.jpeg";
 const MAX_SIZE_MB = 50;
+
+const API_MISCONFIG_MESSAGE =
+  "Uploads are disabled: this app is running in production but the API URL is set to localhost. Set NEXT_PUBLIC_API_BASE_URL to your API's public URL (e.g. https://your-api.up.railway.app) in the Web service settings on Railway and redeploy.";
 
 export function UploadDropzone() {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [apiMisconfigured, setApiMisconfigured] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    setApiMisconfigured(isApiMisconfiguredForProduction());
+  }, []);
 
   const handleFile = useCallback(
     async (file: File) => {
@@ -22,6 +30,10 @@ export function UploadDropzone() {
       console.log("[debug]", _logA1);
       fetch("http://127.0.0.1:7243/ingest/4fa9d56-0c07-4559-a3dd-8cbc6c272e7d", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ..._logA1, timestamp: Date.now() }) }).catch(() => {});
       // #endregion
+      if (isApiMisconfiguredForProduction()) {
+        setError(API_MISCONFIG_MESSAGE);
+        return;
+      }
       setError(null);
       setUploadProgress(0);
 
@@ -81,17 +93,23 @@ export function UploadDropzone() {
 
   return (
     <div className="w-full max-w-2xl">
+      {apiMisconfigured && (
+        <div className="mb-4 rounded-lg border border-amber-200 dark:border-amber-700/50 bg-amber-50 dark:bg-amber-900/20 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
+          {API_MISCONFIG_MESSAGE}
+        </div>
+      )}
       <div
         onDragOver={(e) => {
           e.preventDefault();
-          setIsDragging(true);
+          if (!apiMisconfigured) setIsDragging(true);
         }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={onDrop}
-        onClick={() => inputRef.current?.click()}
+        onClick={() => !apiMisconfigured && inputRef.current?.click()}
         role="button"
-        tabIndex={0}
+        tabIndex={apiMisconfigured ? -1 : 0}
         onKeyDown={(e) => {
+          if (apiMisconfigured) return;
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
             inputRef.current?.click();
@@ -99,13 +117,14 @@ export function UploadDropzone() {
         }}
         aria-label="Upload syllabus file"
         className={`
-          relative cursor-pointer rounded-xl border-2 border-dashed px-8 py-14 text-center
+          relative rounded-xl border-2 border-dashed px-8 py-14 text-center
           transition-all duration-200
           ${
             isDragging
               ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20 scale-[1.01]"
               : "border-surface-300 dark:border-surface-600 bg-surface-100/60 dark:bg-surface-800/40 hover:border-primary-400 dark:hover:border-primary-500 hover:shadow-sm"
           }
+          ${apiMisconfigured ? "cursor-not-allowed opacity-60 pointer-events-none" : "cursor-pointer"}
           ${isUploading ? "pointer-events-none opacity-60" : ""}
         `}
       >
