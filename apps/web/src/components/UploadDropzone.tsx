@@ -17,6 +17,11 @@ export function UploadDropzone() {
 
   const handleFile = useCallback(
     async (file: File) => {
+      // #region agent log
+      const _logA1 = { location: "UploadDropzone.tsx:handleFile", message: "handleFile called", data: { fileName: file.name, fileSize: file.size }, hypothesisId: "A" };
+      console.log("[debug]", _logA1);
+      fetch("http://127.0.0.1:7243/ingest/4fa9d56-0c07-4559-a3dd-8cbc6c272e7d", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ..._logA1, timestamp: Date.now() }) }).catch(() => {});
+      // #endregion
       setError(null);
       setUploadProgress(0);
 
@@ -32,12 +37,22 @@ export function UploadDropzone() {
         return;
       }
 
+      // #region agent log
+      const _logA2 = { location: "UploadDropzone.tsx:handleFile", message: "validation passed, calling uploadFileWithProgress", data: { fileName: file.name }, hypothesisId: "A" };
+      console.log("[debug]", _logA2);
+      fetch("http://127.0.0.1:7243/ingest/4fa9d56-0c07-4559-a3dd-8cbc6c272e7d", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ..._logA2, timestamp: Date.now() }) }).catch(() => {});
+      // #endregion
       setIsUploading(true);
       try {
         const { job_id } = await uploadFileWithProgress(file, (percent) => setUploadProgress(percent));
         router.push(`/job/${job_id}`);
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : "Upload failed";
+        // #region agent log
+        const _logD = { location: "UploadDropzone.tsx:catch", message: "upload rejected", data: { message }, hypothesisId: "D" };
+        console.log("[debug]", _logD);
+        fetch("http://127.0.0.1:7243/ingest/4fa9d56-0c07-4559-a3dd-8cbc6c272e7d", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ..._logD, timestamp: Date.now() }) }).catch(() => {});
+        // #endregion
         setError(message);
         setIsUploading(false);
         setUploadProgress(0);
