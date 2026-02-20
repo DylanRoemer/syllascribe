@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import sys
 import uuid
 import traceback
 
@@ -20,13 +21,11 @@ _engine = create_engine(DATABASE_URL_SYNC)
 _SessionLocal = sessionmaker(bind=_engine)
 
 
-# We need the ORM models — import them from the api service by adding the path
-import sys
-
-_services_dir = os.path.join(os.path.dirname(__file__), "..", "..", "api")
-if _services_dir not in sys.path:
-    sys.path.insert(0, _services_dir)
-
+# API's app.models: worker package is worker_app so "app" is free for the API
+_worker_app_dir = os.path.dirname(os.path.abspath(__file__))
+_api_services_dir = os.path.abspath(os.path.join(_worker_app_dir, "..", "..", "api"))
+if _api_services_dir not in sys.path:
+    sys.path.insert(0, _api_services_dir)
 from app.models import Job, Event  # noqa: E402
 
 

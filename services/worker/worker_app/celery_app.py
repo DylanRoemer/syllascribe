@@ -23,5 +23,5 @@ celery_app.conf.update(
     worker_prefetch_multiplier=1,
 )
 
-# Auto-discover tasks
-celery_app.autodiscover_tasks(["app"])
+# Auto-discover tasks from worker_app so "app" is free for API's app.models
+celery_app.autodiscover_tasks(["worker_app"])

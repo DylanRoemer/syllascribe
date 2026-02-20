@@ -24,4 +24,4 @@ ENV UPLOAD_DIR=/app/data/uploads
 
 WORKDIR /app/services/worker
 
-CMD ["celery", "-A", "app.celery_app:celery_app", "worker", "--loglevel=info", "--concurrency=2"]
+CMD ["celery", "-A", "worker_app.celery_app:celery_app", "worker", "--loglevel=info", "--concurrency=2"]
