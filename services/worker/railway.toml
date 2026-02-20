@@ -1,0 +1,6 @@
+# Railway config for Worker service (Celery).
+# In Railway: Service → Settings → set "Config path" to: services/worker/railway.toml
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "services/worker/Dockerfile"

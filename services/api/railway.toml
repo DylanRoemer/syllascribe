@@ -1,0 +1,6 @@
+# Railway config for API service (FastAPI).
+# In Railway: Service → Settings → set "Config path" to: services/api/railway.toml
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "services/api/Dockerfile"

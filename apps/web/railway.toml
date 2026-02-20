@@ -1,0 +1,6 @@
+# Railway config for Web service (Next.js).
+# In Railway: Service → Settings → set "Config path" to: apps/web/railway.toml
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "apps/web/Dockerfile"
