@@ -67,7 +67,7 @@ uvicorn app.main:app --reload --port 8000
 **Terminal 2 — Worker:**
 ```bash
 cd services/worker
-celery -A app.celery_app worker --loglevel=info
+celery -A worker_app.celery_app worker --loglevel=info
 ```
 
 **Terminal 3 — Frontend:**
@@ -87,7 +87,7 @@ Navigate to [http://localhost:3000](http://localhost:3000).
 syllascribe/
   apps/web/              # Next.js frontend
   services/api/          # FastAPI backend
-  services/worker/       # Celery task worker
+  services/worker/       # Celery task worker (entry: worker_app.celery_app)
   packages/shared/       # Shared Python: extraction, ICS generation, schemas
   infra/                 # Docker Compose for Postgres + Redis
   data/uploads/          # Local file storage (dev)
@@ -143,9 +143,16 @@ The review screen uses a split-view layout:
 
 Edits are autosaved after 1.2 seconds of inactivity via a debounced PUT to the existing events endpoint. Save status ("Saving..." / "Saved" / error) is shown in the top action bar with `aria-live="polite"` for screen readers.
 
+## Deployment (Railway)
+
+- Use `.env.railway.example` as a template. For **Worker** variables, set `DATABASE_URL_SYNC` and `REDIS_URL` via **Add Reference** → Postgres / Redis — do not paste literal URLs with `host`; the worker will fail to connect.
+- The API Dockerfile runs `alembic upgrade head` before starting uvicorn so migrations run on deploy.
+- See `RAILWAY_DOCKERFILE_SETUP.md` for Dockerfile-based Railway setup.
+
 ## Troubleshooting
 
 - **Postgres connection refused**: Ensure `docker-compose up -d` is running and port 5432 is free.
 - **Redis connection refused**: Check that Redis container is up on port 6379.
 - **OCR not working**: Install `tesseract` and `poppler` system packages (`brew install tesseract poppler` on macOS).
 - **Alembic errors**: Make sure `DATABASE_URL_SYNC` in your `.env` uses the `postgresql://` scheme (not `postgresql+asyncpg://`).
+- **Worker "REDIS_URL looks like a placeholder"**: On Railway, set Worker variables via **Add Reference** → Redis (and Postgres for `DATABASE_URL_SYNC`), not literal placeholder URLs.

@@ -1,10 +1,18 @@
 """Celery application configuration."""
 
 import os
+import sys
 
 from celery import Celery
 
 REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
+if "host:6379" in REDIS_URL and "railway.internal" not in REDIS_URL:
+    print(
+        "ERROR: REDIS_URL looks like a placeholder (host:6379). "
+        "On Railway, set Worker Variables → REDIS_URL to 'Add Reference' → Redis → REDIS_URL.",
+        file=sys.stderr,
+    )
+    sys.exit(1)
 
 celery_app = Celery(
     "syllascribe_worker",
