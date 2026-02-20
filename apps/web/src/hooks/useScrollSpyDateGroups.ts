@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 
 /**
  * 1) Timeline calls setDateGroupRef(date, el) for each date group element.
  * 2) IntersectionObserver detects which date group is in view.
  * 3) scrollToDate(date) scrolls the container to that date group.
+ * Observation runs after refs are attached (rAF + delayed pass) so inViewDate updates on first load and when dateKeys change.
  */
 export function useScrollSpyDateGroups(dateKeys: string[]) {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
@@ -17,7 +18,7 @@ export function useScrollSpyDateGroups(dateKeys: string[]) {
     else dateGroupRefs.current.delete(date);
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const container = scrollContainerRef.current;
     if (!container || dateKeys.length === 0) return;
 
@@ -38,16 +39,19 @@ export function useScrollSpyDateGroups(dateKeys: string[]) {
       { root: container, rootMargin: "-80px 0px -50% 0px", threshold: 0 }
     );
 
-    const scheduleObserve = () => {
+    const observeAll = () => {
       dateKeys.forEach((date) => {
         const el = dateGroupRefs.current.get(date);
         if (el) observer.observe(el);
       });
     };
 
-    const t = requestAnimationFrame(scheduleObserve);
+    const t1 = requestAnimationFrame(observeAll);
+    const timeoutId = setTimeout(observeAll, 80);
+
     return () => {
-      cancelAnimationFrame(t);
+      cancelAnimationFrame(t1);
+      clearTimeout(timeoutId);
       observer.disconnect();
     };
   }, [dateKeys.join(",")]);
