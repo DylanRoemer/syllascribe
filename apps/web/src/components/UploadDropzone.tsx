@@ -2,7 +2,7 @@
 
 import { useCallback, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { uploadFile } from "@/lib/api";
+import { uploadFileWithProgress } from "@/lib/api";
 
 const ACCEPTED = ".pdf,.docx,.png,.jpg,.jpeg";
 const MAX_SIZE_MB = 50;
@@ -10,6 +10,7 @@ const MAX_SIZE_MB = 50;
 export function UploadDropzone() {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
@@ -17,6 +18,7 @@ export function UploadDropzone() {
   const handleFile = useCallback(
     async (file: File) => {
       setError(null);
+      setUploadProgress(0);
 
       const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
       const allowed = ["pdf", "docx", "png", "jpg", "jpeg"];
@@ -32,12 +34,13 @@ export function UploadDropzone() {
 
       setIsUploading(true);
       try {
-        const { job_id } = await uploadFile(file);
+        const { job_id } = await uploadFileWithProgress(file, (percent) => setUploadProgress(percent));
         router.push(`/job/${job_id}`);
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : "Upload failed";
         setError(message);
         setIsUploading(false);
+        setUploadProgress(0);
       }
     },
     [router]
@@ -102,9 +105,20 @@ export function UploadDropzone() {
 
         {isUploading ? (
           <div className="flex flex-col items-center gap-4">
-            <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-primary-200 border-t-primary-600" />
-            <p className="text-sm font-medium text-surface-600 dark:text-surface-300">
-              Uploading your syllabus...
+            <div className="w-full max-w-xs">
+              <div className="h-2 w-full rounded-full bg-surface-200 dark:bg-surface-700 overflow-hidden">
+                <div
+                  className="h-full bg-primary-600 transition-[width] duration-300 ease-out"
+                  style={{ width: `${uploadProgress}%` }}
+                  role="progressbar"
+                  aria-valuenow={uploadProgress}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                />
+              </div>
+            </div>
+            <p className="text-sm font-medium text-surface-700 dark:text-surface-300">
+              {uploadProgress < 100 ? `Uploading… ${uploadProgress}%` : "Processing…"}
             </p>
           </div>
         ) : (

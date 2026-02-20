@@ -1,9 +1,15 @@
 /**
  * API client for the Syllascribe FastAPI backend.
+ *
+ * In production (e.g. Railway), set NEXT_PUBLIC_API_BASE_URL on the Web service
+ * to your API's public URL (e.g. https://sylliscribe-api-production.up.railway.app).
+ * Otherwise the browser will try to upload to localhost and requests will fail or hang.
  */
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
+
+const UPLOAD_TIMEOUT_MS = 180_000; // 3 minutes for large files on slow connections
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -58,21 +64,68 @@ export interface EventUpdate {
 
 // ── API functions ───────────────────────────────────────────────────────────
 
-export async function uploadFile(file: File): Promise<{ job_id: string }> {
-  const formData = new FormData();
-  formData.append("file", file);
+/**
+ * Upload a file with optional progress callback. Uses XHR so we can report upload progress.
+ * Times out after UPLOAD_TIMEOUT_MS so slow or broken connections fail with a clear error.
+ */
+export function uploadFileWithProgress(
+  file: File,
+  onProgress?: (percent: number) => void
+): Promise<{ job_id: string }> {
+  return new Promise((resolve, reject) => {
+    const formData = new FormData();
+    formData.append("file", file);
 
-  const res = await fetch(`${API_BASE}/api/upload`, {
-    method: "POST",
-    body: formData,
+    const xhr = new XMLHttpRequest();
+    const timeoutId = setTimeout(() => {
+      xhr.abort();
+      reject(new Error("Upload timed out. Check your connection and try again, or use a smaller file."));
+    }, UPLOAD_TIMEOUT_MS);
+
+    xhr.upload.addEventListener("progress", (e) => {
+      if (e.lengthComputable && onProgress) {
+        onProgress(Math.round((e.loaded / e.total) * 100));
+      }
+    });
+
+    xhr.addEventListener("load", () => {
+      clearTimeout(timeoutId);
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const data = JSON.parse(xhr.responseText) as { job_id: string };
+          resolve(data);
+        } catch {
+          reject(new Error("Upload failed"));
+        }
+      } else {
+        let detail = "Upload failed";
+        try {
+          const err = JSON.parse(xhr.responseText) as { detail?: string };
+          detail = err.detail ?? detail;
+        } catch {
+          // ignore
+        }
+        reject(new Error(detail));
+      }
+    });
+
+    xhr.addEventListener("error", () => {
+      clearTimeout(timeoutId);
+      reject(new Error("Network error. Check that the API is reachable and try again."));
+    });
+
+    xhr.addEventListener("abort", () => {
+      clearTimeout(timeoutId);
+      if (!xhr.responseURL) reject(new Error("Upload timed out. Check your connection and try again."));
+    });
+
+    xhr.open("POST", `${API_BASE}/api/upload`);
+    xhr.send(formData);
   });
+}
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: "Upload failed" }));
-    throw new Error(err.detail || "Upload failed");
-  }
-
-  return res.json();
+export async function uploadFile(file: File): Promise<{ job_id: string }> {
+  return uploadFileWithProgress(file);
 }
 
 export async function getJob(jobId: string): Promise<JobResponse> {
