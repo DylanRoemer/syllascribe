@@ -83,13 +83,21 @@ export function uploadFileWithProgress(
     }, UPLOAD_TIMEOUT_MS);
 
     xhr.upload.addEventListener("progress", (e) => {
-      if (e.lengthComputable && onProgress) {
-        onProgress(Math.round((e.loaded / e.total) * 100));
+      if (!onProgress) return;
+      let percent: number;
+      if (e.lengthComputable && e.total > 0) {
+        percent = Math.round((e.loaded / e.total) * 100);
+      } else if (e.loaded > 0 && file.size > 0) {
+        percent = Math.min(99, Math.round((e.loaded / file.size) * 100));
+      } else {
+        percent = 0;
       }
+      onProgress(percent);
     });
 
     xhr.addEventListener("load", () => {
       clearTimeout(timeoutId);
+      if (onProgress) onProgress(100);
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
           const data = JSON.parse(xhr.responseText) as { job_id: string };
