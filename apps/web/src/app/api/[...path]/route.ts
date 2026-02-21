@@ -70,7 +70,7 @@ async function proxy(
   headers.delete("host");
   headers.delete("connection");
 
-  const init: RequestInit = {
+  const init: RequestInit & { duplex?: "half" } = {
     method,
     headers,
     duplex: "half",
@@ -81,7 +81,7 @@ async function proxy(
 
   let res: Response;
   try {
-    res = await fetch(backendUrl, init);
+    res = await fetch(backendUrl, init as RequestInit);
   } catch (proxyErr) {
     // #region agent log
     const fs = await import("fs");
