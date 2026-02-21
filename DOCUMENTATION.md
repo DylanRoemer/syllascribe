@@ -16,6 +16,7 @@ Environment: `.env` at project root. On Railway, **Worker** must use **Add Refer
 | `DATABASE_URL_SYNC` | Yes | Sync Postgres URL for Alembic and worker (`postgresql://...`). |
 | `REDIS_URL` | Yes | Redis URL for Celery broker (e.g. `redis://localhost:6379/0`). |
 | `UPLOAD_DIR` | Yes | Path to store uploaded PDFs (e.g. `/app/data/uploads`). |
+| `RUN_EXTRACTION_INLINE` | No | Set to `true` to run extraction in the API process (no Celery). Use on Railway so the API and Worker don't need shared storage; the Worker then doesn't process uploads. |
 | `ALLOWED_ORIGINS` | Yes | Comma-separated CORS origins (e.g. `https://your-web.up.railway.app`). |
 | `PORT` | No | Port for uvicorn (default 8000). |
 | `USE_LLM_CLASSIFIER` | No | Set to `true` to enable LLM refinement of event titles/categories. |
@@ -109,9 +110,9 @@ syllascribe/
 
 1. **Dockerfile path** — Set per service via `railway.toml` (config path) or variable `RAILWAY_DOCKERFILE_PATH` (see [RAILWAY_DOCKERFILE_SETUP.md](RAILWAY_DOCKERFILE_SETUP.md)).
 2. **Postgres + Redis** — Create Postgres and Redis services; note they provide URLs via References.
-3. **API** — Set variables from `.env`. Use References for `DATABASE_URL` / `DATABASE_URL_SYNC` / `REDIS_URL`. Set `ALLOWED_ORIGINS` to your Web URL. The Dockerfile runs `alembic upgrade head` then uvicorn.
+3. **API** — Set variables from `.env`. Use References for `DATABASE_URL` / `DATABASE_URL_SYNC` / `REDIS_URL`. Set `ALLOWED_ORIGINS` to your Web URL. Set `RUN_EXTRACTION_INLINE=true` so uploads are processed in the API (Railway has no shared volume between API and Worker). The Dockerfile runs `alembic upgrade head` then uvicorn.
 4. **Worker** — Set variables from Worker block. **Must** use **Add Reference** for `DATABASE_URL_SYNC` and `REDIS_URL` (literal `host` will not resolve). Worker runs as non-root user `celery`.
-5. **Web** — Set `NEXT_PUBLIC_API_BASE_URL` to the API’s **public** URL (e.g. `https://sylliscribe-api-production.up.railway.app`). If this is missing or wrong, uploads from the browser will go to the wrong host (e.g. localhost) and hang or fail. Build and start Next.js (Railway may set `PORT=8080`).
+5. **Web** — Set `NEXT_PUBLIC_API_BASE_URL` to the API’s **public** URL (e.g. `https://syllascribe-api-production.up.railway.app`). If this is missing or wrong, uploads from the browser will go to the wrong host (e.g. localhost) and hang or fail. Build and start Next.js (Railway may set `PORT=8080`).
 6. **Verify** — Check API `/api/health`; upload a PDF and confirm job runs and events appear; export `.ics`.
 
 ---
@@ -128,5 +129,6 @@ syllascribe/
 | CORS errors in browser | API not allowing Web origin | Add Web app URL to API `ALLOWED_ORIGINS`. |
 | Upload hangs or never completes (production) | Web calling wrong API | Set `NEXT_PUBLIC_API_BASE_URL` to the API’s public URL (e.g. `https://your-api.up.railway.app`). Set `NEXT_PUBLIC_API_BASE_URL` (and redeploy) or `API_BASE_URL`; hard-refresh if you still see localhost. |
 | Upload returns 404 (production, request to Web /api/upload) | Proxy has no backend URL | Set Web service `API_BASE_URL` to the FastAPI public URL. No rebuild needed. |
+| Processing failed: "Upload file not found: /app/data/uploads/..." | API and Worker are separate containers; Worker can't see API's files | Set API `RUN_EXTRACTION_INLINE=true` so extraction runs in the API process. Redeploy API. |
 
 For more context see **Troubleshooting** in [README.md](README.md) and **Worker: Redis and Postgres must use References** in [RAILWAY_DOCKERFILE_SETUP.md](RAILWAY_DOCKERFILE_SETUP.md).

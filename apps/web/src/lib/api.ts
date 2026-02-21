@@ -14,6 +14,8 @@ const ENV_API_BASE =
  * served from a non-localhost origin (avoids production builds defaulting to localhost).
  * When NEXT_PUBLIC_API_BASE_URL is unset at build time (e.g. Railway), we derive the
  * API URL from the web origin so uploads hit the API instead of the Next.js proxy.
+ * If uploads time out in production, set NEXT_PUBLIC_API_BASE_URL to your API's
+ * public URL (e.g. from Railway API service) and redeploy the Web service.
  */
 function getApiBaseUrl(): string {
   if (typeof window === "undefined") {

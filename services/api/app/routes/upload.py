@@ -105,21 +105,22 @@ async def upload_file(
     db.add(job)
     await db.flush()
 
-    # Try Celery first; fall back to inline extraction
+    # Try Celery first; fall back to inline extraction (or run inline when RUN_EXTRACTION_INLINE=true, e.g. Railway with no shared volume)
     celery_dispatched = False
-    try:
-        from celery import Celery
-        import redis as redis_lib
+    if not settings.RUN_EXTRACTION_INLINE:
+        try:
+            from celery import Celery
+            import redis as redis_lib
 
-        # Quick check if Redis is reachable
-        r = redis_lib.Redis.from_url(settings.REDIS_URL, socket_connect_timeout=1)
-        r.ping()
+            # Quick check if Redis is reachable
+            r = redis_lib.Redis.from_url(settings.REDIS_URL, socket_connect_timeout=1)
+            r.ping()
 
-        celery_app = Celery(broker=settings.REDIS_URL)
-        celery_app.send_task("app.tasks.process_job", args=[str(job_id)])
-        celery_dispatched = True
-    except Exception:
-        pass
+            celery_app = Celery(broker=settings.REDIS_URL)
+            celery_app.send_task("app.tasks.process_job", args=[str(job_id)])
+            celery_dispatched = True
+        except Exception:
+            pass
 
     if not celery_dispatched:
         # Run extraction inline in a thread to avoid blocking the event loop

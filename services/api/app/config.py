@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     DATABASE_URL_SYNC: str = f"sqlite:///{_DEFAULT_SQLITE_PATH}"
     REDIS_URL: str = "redis://localhost:6379/0"
     UPLOAD_DIR: str = "../../data/uploads"
+    RUN_EXTRACTION_INLINE: bool = False  # When True, run extraction in API (no Celery); use on Railway where API and Worker have no shared volume
     ALLOWED_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000"
     USE_LLM_CLASSIFIER: bool = False
     LLM_PROVIDER: str = "openai"
