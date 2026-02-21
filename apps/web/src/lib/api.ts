@@ -12,6 +12,8 @@ const ENV_API_BASE =
 /**
  * Effective API base URL. In the browser, never use localhost when the app is
  * served from a non-localhost origin (avoids production builds defaulting to localhost).
+ * When NEXT_PUBLIC_API_BASE_URL is unset at build time (e.g. Railway), we derive the
+ * API URL from the web origin so uploads hit the API instead of the Next.js proxy.
  */
 function getApiBaseUrl(): string {
   if (typeof window === "undefined") {
@@ -22,8 +24,13 @@ function getApiBaseUrl(): string {
   const isProduction = hostname !== "localhost" && hostname !== "127.0.0.1";
   const envPointsToLocalhost =
     ENV_API_BASE.includes("localhost") || ENV_API_BASE.includes("127.0.0.1");
-  // Production must never use localhost for API (env is baked at build time; may be unset on Railway)
+  // Production but env was localhost/unset at build time → don't use same-origin (proxy would forward to localhost and hang)
   if (isProduction && envPointsToLocalhost) {
+    // Derive API URL from web origin (e.g. syllascribe-web-... → syllascribe-api-...)
+    if (hostname.includes("-web-")) {
+      const apiHost = hostname.replace(/-web-/, "-api-");
+      return `${window.location.protocol}//${apiHost}`;
+    }
     return origin;
   }
   return ENV_API_BASE;
