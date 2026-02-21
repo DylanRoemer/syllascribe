@@ -57,6 +57,15 @@ async function proxy(
   const backendPath = `/api${pathSegment ? `/${pathSegment}` : ""}`;
   const backendUrl = `${stripTrailingSlash(BACKEND_BASE)}${backendPath}${url.search}`;
 
+  // #region agent log
+  if (pathSegment === "upload" && method === "POST") {
+    const fs = await import("fs");
+    const logPath = "/Users/dylanchungroemer/Downloads/UATX/Classes/Y1T2/Polaris Ideas/syllascribe/.cursor/debug.log";
+    const line = JSON.stringify({ location: "route.ts:proxy", message: "proxy_upload_forward", data: { backendUrl, pathSegment }, timestamp: Date.now(), hypothesisId: "H5" }) + "\n";
+    fs.appendFileSync(logPath, line);
+  }
+  // #endregion
+
   const headers = new Headers(request.headers);
   headers.delete("host");
   headers.delete("connection");
@@ -70,7 +79,18 @@ async function proxy(
     init.body = request.body;
   }
 
-  const res = await fetch(backendUrl, init);
+  let res: Response;
+  try {
+    res = await fetch(backendUrl, init);
+  } catch (proxyErr) {
+    // #region agent log
+    const fs = await import("fs");
+    const logPath = "/Users/dylanchungroemer/Downloads/UATX/Classes/Y1T2/Polaris Ideas/syllascribe/.cursor/debug.log";
+    const line = JSON.stringify({ location: "route.ts:proxy fetch", message: "proxy_fetch_error", data: { backendUrl, err: String(proxyErr) }, timestamp: Date.now(), hypothesisId: "H5" }) + "\n";
+    fs.appendFileSync(logPath, line);
+    // #endregion
+    throw proxyErr;
+  }
   const resHeaders = new Headers(res.headers);
   resHeaders.delete("transfer-encoding");
   resHeaders.delete("connection");

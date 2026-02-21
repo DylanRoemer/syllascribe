@@ -111,6 +111,15 @@ export function uploadFileWithProgress(
     const formData = new FormData();
     formData.append("file", file);
 
+    // #region agent log
+    const apiBase = getApiBaseUrl();
+    const uploadUrl = `${apiBase}/api/upload`;
+    const isProd = typeof window !== "undefined" && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1";
+    const payload = { location: "api.ts:uploadFileWithProgress", message: "upload_start", data: { apiBase, uploadUrl, isProd, origin: typeof window !== "undefined" ? window.location.origin : null }, timestamp: Date.now(), hypothesisId: "H1" };
+    fetch("http://127.0.0.1:7244/ingest/85fa800b-7473-4401-879f-100e2b69e0f7", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }).catch(() => {});
+    if (typeof console !== "undefined" && console.log) console.log("[syllascribe-debug]", JSON.stringify(payload));
+    // #endregion
+
     const xhr = new XMLHttpRequest();
     const timeoutId = setTimeout(() => {
       xhr.abort();
@@ -132,6 +141,12 @@ export function uploadFileWithProgress(
 
     xhr.addEventListener("load", () => {
       clearTimeout(timeoutId);
+      // #region agent log
+      const responseSnippet = typeof xhr.responseText === "string" ? xhr.responseText.slice(0, 300) : "";
+      const loadPayload = { location: "api.ts:xhr.load", message: "upload_response", data: { status: xhr.status, statusText: xhr.statusText, responseSnippet }, timestamp: Date.now(), hypothesisId: "H3" };
+      fetch("http://127.0.0.1:7244/ingest/85fa800b-7473-4401-879f-100e2b69e0f7", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(loadPayload) }).catch(() => {});
+      if (typeof console !== "undefined" && console.log) console.log("[syllascribe-debug]", JSON.stringify(loadPayload));
+      // #endregion
       if (onProgress) onProgress(100);
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
@@ -154,15 +169,25 @@ export function uploadFileWithProgress(
 
     xhr.addEventListener("error", () => {
       clearTimeout(timeoutId);
+      // #region agent log
+      const errPayload = { location: "api.ts:xhr.error", message: "upload_network_error", data: {}, timestamp: Date.now(), hypothesisId: "H2" };
+      fetch("http://127.0.0.1:7244/ingest/85fa800b-7473-4401-879f-100e2b69e0f7", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(errPayload) }).catch(() => {});
+      if (typeof console !== "undefined" && console.log) console.log("[syllascribe-debug]", JSON.stringify(errPayload));
+      // #endregion
       reject(new Error("Network error. Check that the API is reachable and try again."));
     });
 
     xhr.addEventListener("abort", () => {
       clearTimeout(timeoutId);
+      // #region agent log
+      const abortPayload = { location: "api.ts:xhr.abort", message: "upload_abort", data: { responseURL: xhr.responseURL || null }, timestamp: Date.now(), hypothesisId: "H2" };
+      fetch("http://127.0.0.1:7244/ingest/85fa800b-7473-4401-879f-100e2b69e0f7", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(abortPayload) }).catch(() => {});
+      if (typeof console !== "undefined" && console.log) console.log("[syllascribe-debug]", JSON.stringify(abortPayload));
+      // #endregion
       if (!xhr.responseURL) reject(new Error("Upload timed out. Check your connection and try again."));
     });
 
-    xhr.open("POST", `${getApiBaseUrl()}/api/upload`);
+    xhr.open("POST", uploadUrl);
     xhr.send(formData);
   });
 }
