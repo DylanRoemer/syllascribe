@@ -38,11 +38,6 @@ export function UploadDropzone() {
         router.push(`/job/${job_id}`);
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : "Upload failed";
-        // #region agent log
-        const rejectPayload = { location: "UploadDropzone.tsx:handleFile catch", message: "upload_rejected", data: { message, name: err instanceof Error ? err.name : "" }, timestamp: Date.now(), hypothesisId: "H3" };
-        fetch("http://127.0.0.1:7244/ingest/85fa800b-7473-4401-879f-100e2b69e0f7", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(rejectPayload) }).catch(() => {});
-        if (typeof console !== "undefined" && console.log) console.log("[syllascribe-debug]", JSON.stringify(rejectPayload));
-        // #endregion
         setError(message);
         setIsUploading(false);
         setUploadProgress(0);
