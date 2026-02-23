@@ -97,7 +97,7 @@ export function UploadDropzone() {
           ${
             isDragging
               ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20 scale-[1.01]"
-              : "border-surface-300 dark:border-surface-600 bg-surface-100/60 dark:bg-surface-800/40 hover:border-primary-400 dark:hover:border-primary-500 hover:shadow-sm"
+              : "border-surface-300 dark:border-surface-600 bg-surface-200/70 dark:bg-surface-800/40 hover:border-primary-400 dark:hover:border-primary-500 hover:shadow-sm"
           }
           ${isUploading ? "pointer-events-none opacity-60" : ""}
         `}
@@ -136,13 +136,13 @@ export function UploadDropzone() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
               </svg>
             </div>
-            <p className="text-base font-medium text-surface-800 dark:text-surface-200">
+            <p className="text-base font-medium text-surface-900 dark:text-surface-100">
               Drop your syllabus here, or{" "}
-              <span className="text-primary-600 dark:text-primary-400 underline underline-offset-2">
+              <span className="text-primary-700 dark:text-primary-300 font-semibold underline underline-offset-2">
                 browse files
               </span>
             </p>
-            <p className="mt-2 text-sm text-surface-700 dark:text-surface-400">
+            <p className="mt-2 text-sm text-surface-800 dark:text-surface-300">
               PDF, DOCX, PNG, or JPG — up to {MAX_SIZE_MB} MB
             </p>
           </>

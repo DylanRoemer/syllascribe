@@ -254,7 +254,9 @@ export function JobReview({ jobId, data, filename, onRefresh }: Props) {
 
   const leftPane = (
     <div className="flex flex-col min-h-0 flex-1">
-      <DateNavigator dateKeys={dateKeys} inViewDate={inViewDate} onDateClick={scrollToDate} />
+      <div className="flex-shrink-0 max-h-[260px] overflow-y-auto custom-scrollbar">
+        <DateNavigator dateKeys={dateKeys} inViewDate={inViewDate} onDateClick={scrollToDate} />
+      </div>
       <div className="flex-1 min-h-0">
         <TimelineList
         events={filteredEvents}

@@ -27,7 +27,7 @@ export function JobReviewShell({
   mobileBottomBar,
 }: Props) {
   return (
-    <div className="flex flex-col h-[calc(100dvh-7rem)] min-h-[360px]">
+    <div className="flex flex-col h-[calc(100dvh-5rem)] min-h-[400px]">
       {isDesktop ? (
         <div className="grid grid-cols-[1fr_380px] gap-6 flex-1 min-h-0 overflow-hidden">
           <div className="min-h-0 flex flex-col overflow-hidden">

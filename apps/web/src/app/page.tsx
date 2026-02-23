@@ -30,10 +30,10 @@ export default function HomePage() {
           <br />
           Into a Calendar
         </h1>
-        <p className="mt-5 text-lg text-surface-800 dark:text-surface-400 leading-relaxed max-w-xl mx-auto">
+        <p className="mt-5 text-lg text-surface-900 dark:text-surface-300 leading-relaxed max-w-xl mx-auto">
           Upload a course syllabus and get every key date — assignments, exams,
           holidays — extracted, reviewed, and exported as an{" "}
-          <code className="rounded bg-primary-100 dark:bg-primary-900/30 px-1.5 py-0.5 text-sm font-medium text-primary-800 dark:text-primary-300">
+          <code className="rounded bg-primary-200 dark:bg-primary-900/40 px-1.5 py-0.5 text-sm font-semibold text-primary-900 dark:text-primary-200">
             .ics
           </code>{" "}
           calendar file.
@@ -44,7 +44,7 @@ export default function HomePage() {
       <UploadDropzone />
 
       {/* ── Trust Row ────────────────────────────────────────────────── */}
-      <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-surface-800 dark:text-surface-400">
+      <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-surface-900 dark:text-surface-300">
         <TrustItem icon={<LockIcon />} text="No account required" />
         <TrustItem icon={<CalendarIcon />} text="Google / Apple / Outlook" />
         <TrustItem icon={<ClockIcon />} text="Files deleted after 7 days" />
