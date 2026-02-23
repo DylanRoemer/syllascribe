@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState, useRef } from "react";
+import { useCallback, useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { uploadFileWithProgress } from "@/lib/api";
 
@@ -14,6 +14,14 @@ export function UploadDropzone() {
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+
+  // Reset file input and error when component mounts (e.g. after navigating back from job page)
+  useEffect(() => {
+    if (inputRef.current) inputRef.current.value = "";
+    setError(null);
+    setIsUploading(false);
+    setUploadProgress(0);
+  }, []);
 
   const handleFile = useCallback(
     async (file: File) => {

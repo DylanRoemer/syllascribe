@@ -27,19 +27,19 @@ export function JobReviewShell({
   mobileBottomBar,
 }: Props) {
   return (
-    <div className="flex flex-col h-[calc(100vh-180px)] min-h-[400px]">
+    <div className="flex flex-col h-[calc(100dvh-7rem)] min-h-[360px]">
       {isDesktop ? (
-        <div className="grid grid-cols-[1fr_380px] gap-6 flex-1 min-h-0">
-          <div className="min-h-0 flex flex-col">
+        <div className="grid grid-cols-[1fr_380px] gap-6 flex-1 min-h-0 overflow-hidden">
+          <div className="min-h-0 flex flex-col overflow-hidden">
             {leftPane}
           </div>
-          <aside className="border-l border-surface-200 dark:border-surface-700 pl-6 min-h-0 overflow-y-auto flex-shrink-0">
+          <aside className="border-l border-surface-200 dark:border-surface-700 pl-6 min-h-0 overflow-y-auto flex-shrink-0 custom-scrollbar">
             {rightPane}
           </aside>
         </div>
       ) : (
         <>
-          <div className="flex-1 min-h-0 overflow-hidden flex flex-col pb-24">
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden flex flex-col pb-24 custom-scrollbar">
             {leftPane}
           </div>
           <MobileBottomSheet isOpen={sheetOpen} onClose={onSheetClose}>
