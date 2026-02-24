@@ -6,7 +6,7 @@ For a **detailed reference** (environment variables, API endpoints, extraction p
 
 ## Architecture
 
-- **Frontend**: Next.js (TypeScript) + Tailwind CSS
+- **Frontend**: Next.js 15 (TypeScript) + Tailwind CSS v4
 - **Backend API**: FastAPI (Python) + Pydantic
 - **Worker**: Celery (Python) + Redis
 - **Database**: PostgreSQL
@@ -44,6 +44,8 @@ pip install -r services/worker/requirements.txt
 ```
 
 ### 3. Configure Environment
+
+Copy the project root `.env` into API and worker (or symlink). Ensure `DATABASE_URL`, `DATABASE_URL_SYNC`, and `REDIS_URL` point to your Postgres and Redis instances.
 
 ```bash
 cp .env services/api/.env
@@ -87,7 +89,7 @@ Navigate to [http://localhost:3000](http://localhost:3000).
 
 ```
 syllascribe/
-  apps/web/              # Next.js frontend
+  apps/web/              # Next.js frontend (App Router, TypeScript)
   services/api/          # FastAPI backend
   services/worker/       # Celery task worker (entry: worker_app.celery_app)
   packages/shared/       # Shared Python: extraction, ICS generation, schemas
@@ -106,13 +108,9 @@ See [DOCUMENTATION.md](DOCUMENTATION.md#4-project-structure-detailed) for a deta
 
 ## Design / UX Conventions
 
-### Theme and Dark Mode
+### Theme
 
-The app supports light and dark modes via `next-themes` with Tailwind's `class` strategy. The theme toggle is in the header. The system preference is respected by default. Design tokens (colors, radii, shadows, typography) are defined as CSS custom properties in `globals.css` using Tailwind v4's `@theme` directive.
-
-- **Light mode**: Slate-50 surface, white cards, slate-900 text
-- **Dark mode**: Slate-900 surface, slate-850 cards, slate-100 text
-- No pure black (`#000`) or pure white (`#fff`) backgrounds
+The app uses **dark mode only**. The root layout sets the `dark` class on `<html>`, and design tokens (surface colors, primary, accent, radii) are defined as CSS custom properties in `apps/web/src/app/globals.css` using Tailwind v4’s `@theme` directive. No theme toggle is present.
 
 ### Typography
 
@@ -139,9 +137,9 @@ Every extracted event carries source evidence (page number, source kind, raw tex
 
 The review screen uses a split-view layout:
 
-- **Left pane**: `TimelineEventList` — scrollable, grouped by date with sticky headers and a vertical timeline guide line
-- **Right pane**: `InspectorPanel` — sticky, shows filters/overview when nothing is selected, edit form + evidence when one event is selected, bulk actions when multiple are selected
-- **Mobile**: Single-column timeline with a `MobileBottomSheet` for the inspector, and a sticky bottom action bar
+- **Left pane**: Date navigator (calendar) with a capped height; below it, a scrollable **TimelineList** grouped by date with sticky headers and a vertical timeline guide line.
+- **Right pane**: **InspectorPanel** — sticky, shows filters/overview when nothing is selected, edit form + evidence when one event is selected, bulk actions when multiple are selected.
+- **Mobile**: Single-column timeline with a **MobileBottomSheet** for the inspector and a sticky bottom action bar.
 
 ### Autosave
 
@@ -150,8 +148,10 @@ Edits are autosaved after 1.2 seconds of inactivity via a debounced PUT to the e
 ## Deployment (Railway)
 
 - Use `.env` as a template. For **Worker** variables, set `DATABASE_URL_SYNC` and `REDIS_URL` via **Add Reference** → Postgres / Redis — do not paste literal URLs with `host`; the worker will fail to connect.
+- **API**: Set `RUN_EXTRACTION_INLINE=true` so extraction runs in the API process (Railway does not support shared volumes between API and Worker; otherwise the worker cannot see uploaded files).
+- **Web**: Set `NEXT_PUBLIC_API_BASE_URL` to your API service’s public URL (e.g. `https://syllascribe-api-production.up.railway.app`) so uploads and API calls hit the correct backend. Redeploy the Web service after changing this (build-time variable).
 - The API Dockerfile runs `alembic upgrade head` before starting uvicorn so migrations run on deploy.
-- See [RAILWAY_DOCKERFILE_SETUP.md](RAILWAY_DOCKERFILE_SETUP.md) for Dockerfile path and config; see [DOCUMENTATION.md](DOCUMENTATION.md#5-deployment-checklist-railway) for a full deployment checklist.
+- See [RAILWAY_DOCKERFILE_SETUP.md](RAILWAY_DOCKERFILE_SETUP.md) for Dockerfile path and config; see [DOCUMENTATION.md](DOCUMENTATION.md#5-deployment-checklist-railway) for the full deployment checklist.
 
 ## Troubleshooting
 
@@ -160,3 +160,7 @@ Edits are autosaved after 1.2 seconds of inactivity via a debounced PUT to the e
 - **OCR not working**: Install `tesseract` and `poppler` system packages (`brew install tesseract poppler` on macOS).
 - **Alembic errors**: Make sure `DATABASE_URL_SYNC` in your `.env` uses the `postgresql://` scheme (not `postgresql+asyncpg://`).
 - **Worker "REDIS_URL looks like a placeholder"**: On Railway, set Worker variables via **Add Reference** → Redis (and Postgres for `DATABASE_URL_SYNC`), not literal placeholder URLs.
+- **"Upload file not found" (production)**: API and Worker run in separate containers with no shared filesystem. Set API `RUN_EXTRACTION_INLINE=true` and redeploy so extraction runs in the API process.
+- **Upload hangs or times out (production)**: Set Web `NEXT_PUBLIC_API_BASE_URL` to your API’s public URL and redeploy the Web service; hard-refresh the app.
+
+For more issues and actions, see the [Troubleshooting table](DOCUMENTATION.md#6-troubleshooting-quick-reference) in DOCUMENTATION.md.
